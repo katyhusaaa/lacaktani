@@ -3,6 +3,7 @@
 venv/
 env/
 .env
+lacaktanienv/
 
 # --- SAMPAH PYTHON ---
 __pycache__/
@@ -14,6 +15,7 @@ __pycache__/
 .DS_Store
 
 # --- HASIL TRAINING / OUTPUT ---
+models/
 runs/
 output/
 *.tmp
@@ -21,3 +23,4 @@ output/
 # --- DATABASE ---
 *.db
 *.sqlite3
+
