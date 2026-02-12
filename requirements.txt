@@ -10,12 +10,15 @@ Pillow>=7.1.2
 matplotlib>=3.2.2
 numpy>=1.18.5
 PyYAML>=5.3.1
-requests>=2.23.0
+requests>=2.23.0  # Also for Live Cam stream capture
 scipy>=1.4.1
 tqdm>=4.64.0
 pandas>=1.1.4
 seaborn>=0.11.0
 psutil  # Buat monitor resource system
+
+# --- PDF Export ---
+reportlab>=4.0.0
 
 # --- PyTorch Core ---
 # Note: Sebaiknya install torch manual sesuai versi CUDA GPU kamu
