@@ -5,75 +5,102 @@ import base64
 from PIL import Image
 import io
 import os
+import pathlib
 
-# --- KONFIGURASI PATH ---
-MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'business-logic', 'models', 'best.pt')
+# Fix untuk PosixPath error di Windows (Penting buat load custom model YOLOv5)
+pathlib.PosixPath = pathlib.WindowsPath
 
-# --- LOAD MODEL (Hanya Sekali) ---
+# --- GLOBAL VARIABLES ---
+current_model = None
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# Force reload untuk memastikan cache bersih
-model = torch.hub.load('ultralytics/yolov5', 'custom', path=MODEL_PATH, force_reload=True).to(device)
-model.conf = 0.4  # Batas confidence (40%)
 
-# --- KONFIGURASI WARNA (BGR Format: Blue, Green, Red) ---
-# Kita buat dictionary ini pintar, bisa baca huruf besar/kecil nanti di logic
-COLORS_MAP = {
-    'matang': (0, 0, 255),    # Merah (Matang)
-    'mentah': (0, 255, 0),    # Hijau (Mentah)
-    'berbunga': (0, 255, 255) # Kuning (Berbunga)
-}
+# Folder default model
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, '..', 'business-logic', 'models', 'best.pt')
 
-def get_prediction(image_bytes):
-    # 1. Baca gambar
+def load_custom_model(path_to_model):
+    """Fungsi untuk meload/mengganti model secara dinamis"""
+    global current_model
+    try:
+        print(f"🔄 Sedang meload model dari: {path_to_model}")
+        # Load model dengan torch.hub
+        current_model = torch.hub.load('ultralytics/yolov5', 'custom', path=path_to_model, force_reload=True).to(device)
+        print("✅ Model berhasil dimuat!")
+        return True, "Model berhasil diaktifkan"
+    except Exception as e:
+        print(f"❌ Gagal load model: {e}")
+        return False, str(e)
+
+# --- LOAD MODEL PERTAMA KALI (Saat Server Start) ---
+# Cek apakah file ada, jika tidak pakai dummy atau skip
+if os.path.exists(DEFAULT_MODEL_PATH):
+    load_custom_model(DEFAULT_MODEL_PATH)
+else:
+    print("⚠️ Warning: File best.pt default tidak ditemukan.")
+
+# --- KONFIGURASI WARNA ---
+BOX_COLORS = {'matang': (0, 0, 255), 'mentah': (0, 255, 0), 'berbunga': (0, 255, 255)}
+
+def get_prediction(image_bytes, conf_threshold=0.4):
+    global current_model
+    
+    if current_model is None:
+        return None
+        
+    # Set Confidence dari User
+    current_model.conf = conf_threshold
+
+    # Proses Gambar
     nparr = np.frombuffer(image_bytes, np.uint8)
     img_cv2 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-    # 2. Prediksi
+    if img_cv2 is None:
+        return None  # Gambar invalid/corrupt
     img_rgb = cv2.cvtColor(img_cv2, cv2.COLOR_BGR2RGB)
-    results = model(img_rgb)
+
+    # Deteksi
+    results = current_model(img_rgb)
     df = results.pandas().xyxy[0]
 
-    # 3. GAMBAR HASIL
+    # Visualisasi
+    stats = {'matang': 0, 'mentah': 0, 'berbunga': 0}
     for _, row in df.iterrows():
         x1, y1, x2, y2 = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
-        label_raw = row['name']      # Ambil nama asli (misal: "Matang")
-        label_key = label_raw.lower() # Ubah jadi huruf kecil (misal: "matang")
+        label_raw = row['name']
+        label_key = label_raw.lower()
         conf = float(row['confidence'])
 
-        # Ambil warna (Default ke ORANGE jika label tidak dikenal, bukan Putih lagi)
-        # Format BGR: (0, 165, 255) adalah Orange
-        color = COLORS_MAP.get(label_key, (0, 165, 255))
+        if label_key in stats: stats[label_key] += 1
+        color = BOX_COLORS.get(label_key, (0, 165, 255))
 
-        # --- A. GAMBAR KOTAK (Bounding Box) ---
-        # Thickness 2 px
         cv2.rectangle(img_cv2, (x1, y1), (x2, y2), color, 2)
-
-        # --- B. GAMBAR LABEL ---
+        
+        # Labeling
         text_label = f"{label_raw} {conf:.0%}"
-        
-        # Hitung ukuran teks biar background pas
-        (text_w, text_h), baseline = cv2.getTextSize(text_label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
-        
-        # Koordinat background teks (di atas kotak)
-        # Jika kotak terlalu mepet atas, taruh label di dalam kotak
-        if y1 - 25 > 0:
-            y_bg_top = y1 - 25
-            y_bg_bottom = y1
-            y_text = y1 - 5
-        else:
-            y_bg_top = y1
-            y_bg_bottom = y1 + 25
-            y_text = y1 + 18
+        (text_w, text_h), _ = cv2.getTextSize(text_label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+        y_bg_top = y1 - 20 if y1 - 20 > 0 else y1
+        cv2.rectangle(img_cv2, (x1, y_bg_top), (x1 + text_w, y1), color, -1)
+        cv2.putText(img_cv2, text_label, (x1, y1 - 5 if y1 - 20 > 0 else y1 + 15), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
-        # Gambar Background Teks (Filled = -1)
-        cv2.rectangle(img_cv2, (x1, y_bg_top), (x1 + text_w, y_bg_bottom), color, -1)
+    # Papan Skor Mini
+    overlay = img_cv2.copy()
+    cv2.rectangle(overlay, (10, 10), (200, 110), (0, 0, 0), -1)
+    cv2.addWeighted(overlay, 0.6, img_cv2, 0.4, 0, img_cv2)
+    cv2.putText(img_cv2, f"CONFIDENCE: {conf_threshold*100:.0f}%", (20, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+    cv2.putText(img_cv2, f"Matang   : {stats['matang']}", (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+    cv2.putText(img_cv2, f"Mentah   : {stats['mentah']}", (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    cv2.putText(img_cv2, f"Berbunga : {stats['berbunga']}", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
 
-        # Tulis Teks (Warna HITAM (0,0,0) biar terbaca jelas di warna terang)
-        cv2.putText(img_cv2, text_label, (x1, y_text), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA)
+    # Top detection (highest confidence)
+    top_det = None
+    if not df.empty and 'confidence' in df.columns:
+        best = df.loc[df['confidence'].idxmax()]
+        top_det = {
+            'label': str(best['name']),
+            'confidence': float(best['confidence']),
+            'matang_siap_panen': stats['matang']
+        }
 
-    # 4. Encode ke Base64 untuk dikirim ke Web
     _, buffer = cv2.imencode('.jpg', img_cv2)
-    jpg_as_text = base64.b64encode(buffer).decode('utf-8')
-    
-    return jpg_as_text
+    result_b64 = base64.b64encode(buffer).decode('utf-8')
+    return {'image_data': result_b64, 'stats': stats, 'top_detection': top_det}
