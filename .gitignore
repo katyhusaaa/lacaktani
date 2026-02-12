@@ -1,0 +1,28 @@
+# Abaikan folder virtual environment (Berat!)
+venv/
+env/
+.env
+
+# Abaikan file cache Python (Sampah)
+__pycache__/
+*.py[cod]
+
+# Abaikan folder hasil training YOLO yang GAGAL/LAMA (Biar gak penuh)
+# Tapi kalau mau simpan hasil training bagus, baris ini boleh dihapus
+runs/
+
+# Abaikan file system/IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Abaikan database lokal (Opsional, kalau gak mau data sensor ke-upload)
+*.db
+*.sqlite3
+
+# Abaikan file gambar hasil tes sementara
+output/
+__pycache__
+
+# abaikan environment python
+lacaktani/
