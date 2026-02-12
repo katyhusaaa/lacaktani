@@ -1,33 +1,259 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LacakTani - Strawberry Detector</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>LacakTani Pro — Smart Agriculture AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>LacakTani 🍓</h1>
-            <p>Sistem Deteksi Kematangan Strawberry</p>
-        </header>
 
-        <main>
-            <div class="upload-section">
-                <input type="file" id="imageInput" accept="image/*">
-                <button onclick="uploadImage()">Deteksi Sekarang</button>
+<div id="toast-container"></div>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-inner">
+            <a href="#" class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-seedling"></i></div>
+                <div class="brand-text">
+                    <span class="brand-name">LacakTani</span>
+                    <span class="brand-tagline">Pro</span>
+                </div>
+            </a>
+            <nav class="nav-menu">
+                <span class="nav-label">Menu</span>
+                <button class="nav-item active" data-target="dashboard">
+                    <span class="nav-icon"><i class="fa-solid fa-chart-mixed"></i></span>
+                    <span class="nav-text">Dashboard</span>
+                </button>
+                <button class="nav-item" data-target="history">
+                    <span class="nav-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                    <span class="nav-text">Riwayat</span>
+                </button>
+                <button class="nav-item" data-target="settings">
+                    <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
+                    <span class="nav-text">Pengaturan</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
+                <div class="user-info">
+                    <span class="user-name">{{ username }}</span>
+                    <a href="/logout" class="btn-logout" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="content-area">
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="tab-content active">
+            <header class="page-header">
+                <div class="header-left">
+                    <h1>Dashboard</h1>
+                    <p id="currentDate" class="header-date"></p>
+                </div>
+                <div class="status-pill"><span class="status-dot"></span> Sistem Aktif</div>
+            </header>
+            <div class="dashboard-main">
+                <!-- Stats Cards -->
+                <div class="stats-row">
+                    <div class="stat-card stat-matang">
+                        <i class="fa-solid fa-apple-whole"></i>
+                        <div>
+                            <span class="stat-value" id="statMatang">0</span>
+                            <span class="stat-label">Matang</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-mentah">
+                        <i class="fa-solid fa-leaf"></i>
+                        <div>
+                            <span class="stat-value" id="statMentah">0</span>
+                            <span class="stat-label">Mentah</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-berbunga">
+                        <i class="fa-solid fa-seedling"></i>
+                        <div>
+                            <span class="stat-value" id="statBerbunga">0</span>
+                            <span class="stat-label">Berbunga</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="card chart-card">
+                    <h3><i class="fa-solid fa-chart-line"></i> Tren Deteksi</h3>
+                    <div class="chart-wrap"><canvas id="statsChart"></canvas></div>
+                </div>
+
+                <!-- Estimasi Panen (Placeholder) -->
+                <div class="card estimasi-card">
+                    <h3><i class="fa-solid fa-calendar-check"></i> Estimasi Panen</h3>
+                    <div class="estimasi-placeholder">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                        <p>Fitur akan tersedia setelah integrasi GPS & IoT</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIWAYAT -->
+        <section id="history" class="tab-content hidden">
+            <header class="page-header history-header">
+                <h1>Riwayat Pemindaian</h1>
+                <button class="btn btn-primary" id="btnExportHistory"><i class="fa-solid fa-file-export"></i> Export CSV</button>
+            </header>
+            <div class="history-list" id="historyList">
+                <div class="empty-state-card card" id="historyEmpty">
+                    <div class="empty-icon"><i class="fa-solid fa-folder-open"></i></div>
+                    <h3>Belum ada riwayat</h3>
+                    <p>Lakukan deteksi di Pengaturan untuk menyimpan riwayat</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PENGATURAN -->
+        <section id="settings" class="tab-content hidden">
+            <header class="page-header">
+                <h1>Pengaturan</h1>
+                <p class="page-desc">Kelola unggahan, parameter AI, dan model</p>
+            </header>
+            <div class="settings-section">
+                <h2 class="section-title"><i class="fa-solid fa-sliders"></i> Konfigurasi</h2>
+                <div class="settings-grid">
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                        <h3>Unggah Gambar</h3>
+                        <p>Pilih gambar untuk deteksi atau batch testing</p>
+                    </div>
+                    <div class="drop-zone" id="dropZone">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p>Drag & Drop atau klik untuk memilih</p>
+                        <span class="drop-hint">PNG, JPG, WEBP — Multi select untuk batch</span>
+                        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+                    </div>
+                    <div class="selected-files" id="selectedFiles"></div>
+                    <button class="btn btn-primary btn-block btn-detect-settings" id="btnDetectSettings" type="button" disabled>
+                        <i class="fa-solid fa-sparkles"></i> Jalankan Deteksi
+                    </button>
+                </div>
+
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-brain"></i></div>
+                        <h3>AI Parameter</h3>
+                        <p>Confidence threshold</p>
+                    </div>
+                    <div class="setting-item">
+                        <label>Confidence</label>
+                        <div class="range-wrapper">
+                            <input type="range" id="confRange" min="0.1" max="0.9" step="0.05" value="0.4">
+                            <span id="confValue" class="range-value">40%</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline btn-block btn-save-settings"><i class="fa-solid fa-check"></i> Simpan</button>
+                </div>
+
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-cube"></i></div>
+                        <h3>Model AI</h3>
+                        <p>Pilih atau hapus model — tidak perlu upload ulang</p>
+                    </div>
+                    <div class="model-list" id="modelList">
+                        <div class="model-list-loading">Memuat...</div>
+                    </div>
+                    <div class="file-upload-area">
+                        <button class="btn btn-ghost btn-upload-model"><i class="fa-solid fa-upload"></i> Upload Model .pt</button>
+                    </div>
+                </div>
+
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-file-export"></i></div>
+                        <h3>Export Data</h3>
+                        <p>Unduh riwayat dalam format CSV/Excel</p>
+                    </div>
+                    <a href="/api/export_history" class="btn btn-outline btn-block" download><i class="fa-solid fa-download"></i> Export Riwayat CSV</a>
+                </div>
+                </div>
             </div>
 
-<div class="result-section">
-    <div id="loading" class="hidden">Sedang memproses deteksi...</div>
-    
-    <img id="resultImg" class="hidden" style="max-width: 100%; border-radius: 8px; margin-top: 20px;">
-    
+            <div class="settings-section">
+                <h2 class="section-title"><i class="fa-solid fa-chart-simple"></i> Hasil Deteksi</h2>
+                <div class="settings-results-grid">
+                <div class="card batch-card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-images"></i></div>
+                        <h3>Hasil Batch Testing</h3>
+                        <p>Gambar sebelum & sesudah deteksi</p>
+                    </div>
+                    <div class="batch-area">
+                        <div class="batch-placeholder" id="batchPlaceholder">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <p>Pilih gambar di atas, lalu klik Jalankan Deteksi</p>
+                        </div>
+                        <div class="batch-results" id="batchResults"></div>
+                    </div>
+                </div>
+                <div class="card compare-card" id="compareCard">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-code-compare"></i></div>
+                        <h3>Perbandingan & Klasifikasi Tertinggi</h3>
+                        <p>Original vs hasil + confidence tertinggi</p>
+                    </div>
+                    <div class="compare-area" id="compareArea">
+                        <div class="compare-placeholder" id="comparePlaceholder">
+                            <i class="fa-solid fa-arrows-left-right"></i>
+                            <p>Hasil deteksi akan menampilkan perbandingan sebelum/sesudah dan highlight confidence tertinggi</p>
+                        </div>
+                        <div class="compare-split hidden" id="compareSplit">
+                            <div class="compare-half">
+                                <span class="compare-label">Original</span>
+                                <img id="compareOriginal" alt="Original">
+                            </div>
+                            <div class="compare-half">
+                                <span class="compare-label">Hasil Deteksi</span>
+                                <img id="compareResult" alt="Result">
+                            </div>
+                        </div>
+                        <div class="top-detection hidden" id="topDetection">
+                            <h4><i class="fa-solid fa-crown"></i> Klasifikasi Tertinggi</h4>
+                            <div class="top-info">
+                                <span class="top-label" id="topLabel">—</span>
+                                <span class="top-conf" id="topConf">—</span>
+                            </div>
+                            <p class="panen-info"><i class="fa-solid fa-basket-shopping"></i> Matang siap panen: <strong id="matangCount">0</strong></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card livecam-card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid fa-video"></i></div>
+                        <h3>Live Cam</h3>
+                        <p>Streaming ESP32-CAM</p>
+                    </div>
+                    <div class="camera-feed" id="cameraFeed">
+                        <div class="camera-placeholder">
+                            <i class="fa-solid fa-video-slash"></i>
+                            <p>Hubungkan ESP32-CAM untuk streaming</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-block" id="btnConnectCam"><i class="fa-solid fa-link"></i> Hubungkan</button>
+                </div>
+                </div>
+            </div>
+        </section>
+    </main>
 </div>
-        </main>
-    </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
