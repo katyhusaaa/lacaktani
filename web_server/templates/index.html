@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LacakTani - Strawberry Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LacakTani 🍓</h1>
+            <p>Sistem Deteksi Kematangan Strawberry</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <input type="file" id="imageInput" accept="image/*">
+                <button onclick="uploadImage()">Deteksi Sekarang</button>
+            </div>
+
+<div class="result-section">
+    <div id="loading" class="hidden">Sedang memproses deteksi...</div>
+    
+    <img id="resultImg" class="hidden" style="max-width: 100%; border-radius: 8px; margin-top: 20px;">
+    
+</div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
