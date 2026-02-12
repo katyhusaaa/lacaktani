@@ -1,5 +1,5 @@
-# --- VIRTUAL ENVIRONMENT (WAJIB DI-IGNORE) ---
-# Ini biar folder venv kamu yg isinya ribuan file sampah gak ke-upload
+# --- VIRTUAL ENVIRONMENT ---
+# folder env
 venv/
 env/
 .env
