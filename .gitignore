@@ -1,0 +1,24 @@
+# --- VIRTUAL ENVIRONMENT (WAJIB DI-IGNORE) ---
+# Ini biar folder venv kamu yg isinya ribuan file sampah gak ke-upload
+lacaktani/
+venv/
+env/
+.env
+
+# --- SAMPAH PYTHON ---
+__pycache__/
+*.py[cod]
+
+# --- IDE / SYSTEM ---
+.vscode/
+.idea/
+.DS_Store
+
+# --- HASIL TRAINING / OUTPUT ---
+runs/
+output/
+*.tmp
+
+# --- DATABASE ---
+*.db
+*.sqlite3
