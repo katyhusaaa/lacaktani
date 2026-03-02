@@ -2,6 +2,12 @@
 Flask>=2.0.0
 Werkzeug>=2.0.0
 
+# --- Authentication & Database ---
+# Wajib untuk sistem login dan manajemen user
+Flask-SQLAlchemy>=3.0.0
+Flask-Login>=0.6.0
+python-dotenv>=1.0.0
+
 # --- Computer Vision & Image Processing ---
 opencv-python>=4.5.0
 Pillow>=7.1.2
@@ -10,18 +16,18 @@ Pillow>=7.1.2
 matplotlib>=3.2.2
 numpy>=1.18.5
 PyYAML>=5.3.1
-requests>=2.23.0  # Also for Live Cam stream capture
+requests>=2.23.0  # Dipakai juga untuk Live Cam stream capture
 scipy>=1.4.1
 tqdm>=4.64.0
 pandas>=1.1.4
 seaborn>=0.11.0
-psutil  # Buat monitor resource system
+psutil           # Monitor resource system
 
 # --- PDF Export ---
 reportlab>=4.0.0
 
 # --- PyTorch Core ---
-# Note: Sebaiknya install torch manual sesuai versi CUDA GPU kamu
-# Tapi kalau mau auto-install (biasanya CPU default), uncomment baris bawah ini:
+# Sebaiknya install torch manual sesuai versi CUDA GPU kamu (misal: pip install torch --index-url https://download.pytorch.org/whl/cu118)
+# Tapi kalau mau auto-install versi default:
 # torch>=1.7.0
 # torchvision>=0.8.1
