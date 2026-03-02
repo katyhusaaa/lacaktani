@@ -1,25 +1,22 @@
-/* Import Font Satoshi dari Fontshare */
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
 
 /* --- 1. VARIABEL & RESET --- */
 :root {
     --font-main: 'Satoshi', -apple-system, sans-serif;
-    --bg-body: #F8FAFC;
-    --bg-sidebar: #FFFFFF;
-    --bg-card: #FFFFFF;
-    --primary: #E11D48;
+    --bg-body: #F8FAFC;       
+    --bg-card: #FFFFFF;       
+    --primary: #E11D48;       
     --primary-hover: #BE123C;
-    --primary-soft: #FFE4E6;
-    --text-dark: #0F172A;
-    --text-muted: #475569;
-    --border-color: #E2E8F0;
+    --text-dark: #0F172A;     
+    --text-muted: #64748B;    
+    --border-color: #E2E8F0;  
+    
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    --shadow-lg: 0 20px 40px -10px rgba(15, 23, 42, 0.08);
 }
 
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     font-family: var(--font-main);
@@ -27,213 +24,220 @@ body {
     color: var(--text-dark);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased; 
-    -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- 2. LAYOUT UTAMA --- */
-.app-layout {
-    display: flex;
-    min-height: 100vh;
-    width: 100vw;
-    overflow-x: hidden;
-}
+/* =========================================================
+   2. DASHBOARD & SIDE DRAWER PENGATURAN
+   ========================================================= */
+.app-layout { display: flex; min-height: 100vh; width: 100vw; overflow-x: hidden; background-color: var(--bg-body); }
+.main-content { flex: 1; padding: 40px 56px; min-width: 0; }
+.top-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 50; }
 
-.main-content {
-    flex: 1;
-    padding: 40px 56px;
-    min-width: 0;
-}
+.dashboard-split { display: flex; gap: 24px; align-items: stretch; }
+.stage-left { flex: 6; display: flex; flex-direction: column; }
+.stage-right { flex: 4; display: flex; flex-direction: column; gap: 20px; padding-top: 52px; }
 
-/* --- 3. KOMPONEN UI --- */
-/* FIX: Balikin ketebalan Logo */
-.logo {
-    font-size: 24px;
-    font-weight: 900; /* Dibuat sangat tebal biar kayak screenshot awal lu */
-    color: var(--text-dark);
-}
-.logo span { color: var(--primary); }
+.card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 32px; box-shadow: var(--shadow-sm); }
+.btn-outline { background: white; color: var(--text-dark); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; font-weight: 600; font-family: inherit; cursor: pointer; transition: 0.2s; }
+.btn-outline:hover { border-color: var(--text-muted); background: #F1F5F9; }
+.icon-svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--primary-soft);
-    color: var(--primary);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 700;
-}
+.status-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
 .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
 
-.hero-banner {
-    background: radial-gradient(120% 100% at 50% 0%, #FFE4E6 0%, #F8FAFC 100%);
-    border: 1px solid var(--border-color);
-    border-radius: 24px;
-    padding: 64px 56px;
-    margin-bottom: 40px;
+/* Slider Khusus SaaS di Drawer */
+.saas-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--border-color); border-radius: 10px; outline: none; cursor: pointer; margin-top: 6px; }
+.saas-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; box-shadow: 0 2px 6px rgba(225, 29, 72, 0.4); transition: transform 0.1s ease; }
+.saas-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+/* SIDE DRAWER (PENGATURAN) - FIX LEBAR UNTUK HP */
+.drawer-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 99; opacity: 0; visibility: hidden; transition: 0.3s ease; }
+.drawer-overlay.active { opacity: 1; visibility: visible; }
+.side-drawer { 
+    position: fixed; 
+    top: 0; 
+    right: -100%; /* Sembunyikan sepenuhnya pakai persentase */
+    width: 100%; 
+    max-width: 400px; /* Di desktop max 400px, di HP ngikutin layar */
+    height: 100vh; 
+    background: var(--bg-card); 
+    box-shadow: -10px 0 25px rgba(0,0,0,0.1); 
+    z-index: 100; 
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    display: flex; 
+    flex-direction: column; 
+    border-left: 1px solid var(--border-color); 
+}
+.side-drawer.active { right: 0; }
+.drawer-header { display: flex; justify-content: space-between; align-items: center; padding: 24px; border-bottom: 1px solid var(--border-color); }
+.drawer-content { padding: 24px; overflow-y: auto; flex: 1; }
+
+/* =========================================================
+   3. LANDING PAGE UTAMA (SAAS THEME)
+   ========================================================= */
+.landing-wrap { max-width: 1200px; margin: 0 auto; padding: 0 5%; overflow-x: hidden; }
+
+.saas-navbar { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; margin-bottom: 40px; }
+.logo { font-size: 24px; font-weight: 900; letter-spacing: -0.02em; color: var(--text-dark); }
+.text-primary { color: var(--primary); }
+
+.system-status { display: flex; align-items: center; gap: 16px; background: var(--bg-card); padding: 10px 24px; border-radius: 100px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); font-size: 13px; font-weight: 700; }
+.status-indicator { display: flex; align-items: center; gap: 8px; color: var(--text-dark); }
+.pulse-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; animation: pulse 2s infinite; }
+.separator { color: #CBD5E1; }
+.time-display { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.saas-hero { text-align: center; padding: 60px 0 80px; display: flex; flex-direction: column; align-items: center; position: relative; animation: fadeIn 0.8s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.saas-hero::before { content: ''; position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 400px; background: radial-gradient(ellipse at center, rgba(225,29,72,0.08) 0%, rgba(248,250,252,0) 70%); z-index: -1; pointer-events: none; }
+
+.hero-pill { background: white; border: 1px solid var(--border-color); padding: 6px 16px 6px 6px; border-radius: 100px; font-size: 13px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 12px; margin-bottom: 32px; box-shadow: var(--shadow-sm); }
+.pill-badge { background: var(--primary); color: white; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+.hero-title { font-size: 64px; font-weight: 900; line-height: 1.1; letter-spacing: -0.04em; color: var(--text-dark); margin-bottom: 24px; }
+.text-gradient { background: linear-gradient(135deg, #E11D48 0%, #F59E0B 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero-desc { font-size: 18px; color: var(--text-muted); max-width: 650px; line-height: 1.6; margin-bottom: 40px; }
+
+.hero-actions { display: flex; gap: 16px; margin-bottom: 80px; }
+.btn-saas-primary { background: var(--text-dark); color: white; border: none; padding: 16px 32px; border-radius: 100px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.3); }
+.btn-saas-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 25px -5px rgba(15, 23, 42, 0.4); background: #000000; }
+
+.hero-feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; }
+.hf-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 24px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; box-shadow: var(--shadow-md); transition: 0.3s; }
+.hf-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: #CBD5E1; }
+.hf-icon { width: 48px; height: 48px; background: #F8FAFC; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); }
+.hf-card span { font-size: 14px; font-weight: 800; color: var(--text-dark); }
+
+.saas-workflow { padding: 80px 0; border-top: 1px solid var(--border-color); }
+.section-header { text-align: center; margin-bottom: 60px; }
+.section-header h2 { font-size: 36px; font-weight: 900; margin-bottom: 16px; letter-spacing: -0.02em;}
+.section-header p { font-size: 16px; color: var(--text-muted); max-width: 500px; margin: 0 auto; }
+
+.workflow-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+.wf-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 32px; border-radius: 24px; box-shadow: var(--shadow-sm); transition: 0.3s; }
+.wf-card:hover { box-shadow: var(--shadow-lg); }
+.wf-step { font-size: 14px; font-weight: 900; color: var(--text-muted); background: #F8FAFC; padding: 8px 16px; border-radius: 100px; display: inline-block; margin-bottom: 24px; border: 1px solid var(--border-color); }
+.wf-card h4 { font-size: 18px; font-weight: 800; margin-bottom: 12px; }
+.wf-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+.highlight-card { border: 2px solid var(--primary); box-shadow: 0 20px 40px -10px rgba(225, 29, 72, 0.15); }
+.highlight-step { background: var(--primary); color: white; border: none; }
+
+.saas-team { padding: 80px 0 40px; }
+.team-container { background: #0F172A; border-radius: 40px; padding: 80px 40px 40px; text-align: center; color: white; }
+.team-container h2 { font-size: 36px; font-weight: 900; margin-bottom: 16px; }
+.team-sub { color: #94A3B8; margin-bottom: 60px; max-width: 500px; margin-left: auto; margin-right: auto;}
+.team-grid { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; margin-bottom: 60px; }
+.team-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 24px; width: 100%; max-width: 320px; backdrop-filter: blur(10px); transition: 0.3s; }
+.team-card:hover { transform: translateY(-8px); background: rgba(255,255,255,0.08); }
+.avatar { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; margin: 0 auto 20px; }
+.agung-avatar { background: linear-gradient(135deg, #E11D48, #BE123C); box-shadow: 0 10px 20px rgba(225,29,72,0.3); }
+.fauzan-avatar { background: linear-gradient(135deg, #10B981, #059669); box-shadow: 0 10px 20px rgba(16,185,129,0.3); }
+.team-card h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.role { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+.role-red { color: #F17EB8; } 
+.role-green { color: #34D399; }
+.team-card p { font-size: 14px; color: #94A3B8; line-height: 1.6; }
+.footer-credit { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 32px; font-size: 12px; color: #64748B; }
+
+/* MODALS */
+.saas-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 100; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.4s ease; }
+.saas-modal.active { opacity: 1; visibility: visible; }
+.modal-card { background: var(--bg-card); padding: 48px; border-radius: 32px; width: 100%; max-width: 440px; text-align: center; transform: translateY(30px); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); margin: 0 16px; }
+.saas-modal.active .modal-card { transform: translateY(0); }
+
+.auth-tab { display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 32px; }
+.auth-tab-btn { flex: 1; padding: 16px; background: none; border: none; font-size: 15px; font-weight: 800; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; margin-bottom: -2px;}
+.auth-tab-btn:hover { color: var(--text-dark); }
+.auth-tab-btn.active { color: var(--text-dark); border-bottom: 3px solid var(--text-dark); }
+
+.saas-input { width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--border-color); font-size: 15px; font-weight: 500; outline: none; background: #F8FAFC; transition: 0.2s; margin-bottom: 16px; font-family: inherit;}
+.saas-input:focus { border-color: var(--text-dark); background: white; box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05); }
+
+.w-100 { width: 100%; justify-content: center; margin-top: 8px; }
+.btn-close-modal { background: none; border: none; color: var(--text-muted); margin-top: 24px; cursor: pointer; font-weight: 800; font-size: 13px; transition: 0.2s; }
+.btn-close-modal:hover { color: var(--text-dark); }
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-.badge-tag {
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--primary);
-    background: white;
-    padding: 6px 14px;
-    border-radius: 100px;
-    display: inline-block;
-    margin-bottom: 24px;
-    border: 1px solid var(--primary-soft);
-}
+/* =========================================================
+   4. PERBAIKAN RESPONSIVE (MOBILE & TABLET)
+   ========================================================= */
 
-.card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 32px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-}
-
-/* --- 4. BUTTONS & INPUTS --- */
-.btn-primary {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 100px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.btn-primary:hover { background: var(--primary-hover); }
-
-.btn-outline {
-    background: white;
-    color: var(--text-dark);
-    border: 1px solid var(--border-color);
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.btn-outline:hover { border-color: var(--text-muted); }
-
-/* --- 5. SLIDER SAAS (FIXED) --- */
-.saas-slider {
-    -webkit-appearance: none;
-    appearance: none; 
-    width: 100%;
-    height: 8px; 
-    background: var(--border-color);
-    border-radius: 10px;
-    outline: none;
-    position: relative; 
-    z-index: 50; 
-    cursor: pointer;
-}
-
-.saas-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 24px; 
-    height: 24px;
-    border-radius: 50%;
-    background: var(--primary); 
-    cursor: pointer;
-    position: relative;
-    z-index: 51;
-    box-shadow: 0 2px 8px rgba(225, 29, 72, 0.5);
-    transition: transform 0.1s ease;
-}
-
-.saas-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-    background: var(--primary-hover);
-}
-
-/* --- 6. UTILITIES --- */
-.hidden { display: none !important; }
-
-
-/* ==================================================
-   PENTING: FIX UNTUK LAYOUT 60/40 (AGAR TINGGI SAMA)
-   ================================================== */
-/* Triknya: 
-   1. Kita kasih margin-top ke stage-right yang SAMA PERSIS dengan
-      tinggi dari header "Live Camera Feed" di stage-left. 
-   2. Jadi kartu statistik yang paling atas bakal sejajar persis dengan 
-      ujung atas videonya.
-*/
-
-.dashboard-split {
-    display: flex;
-    gap: 24px;
-    align-items: stretch; /* Mengubah dari flex-start jadi stretch */
-}
-
-/* KIRI: Kontainer Video (60%) */
-.stage-left {
-    flex: 6;
-    display: flex;
-    flex-direction: column;
-}
-
-/* KANAN: Kontainer Statistik (40%) */
-.stage-right {
-    flex: 4;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    /* Header di stage-left tingginya kira-kira 50px (teks + padding).
-       Kita dorong stage-right ke bawah sejauh 50px biar atasnya rata sama video.
-    */
-    padding-top: 52px; 
-}
-
-/* Memastikan kartu video mengisi penuh tinggi kontainernya */
-.stage-left .card {
-    flex: 1; 
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    overflow: hidden;
-    position: relative;
-    border-radius: 20px;
-    min-height: 480px; /* Jaga-jaga biar ga terlalu ciut */
-}
-
-/* Kartu Statistik agar proporsional */
-.stage-right .card {
-    flex: 1; /* Biar ke-3 kartu tingginya sama rata membagi sisa tinggi layar */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Teks di tengah-tengah kartu secara vertikal */
-    padding: 24px 32px; 
-}
-
-/* --- 7. MOBILE RESPONSIVE --- */
 @media screen and (max-width: 900px) {
-    .app-layout { flex-direction: column; }
+    .hero-title { font-size: 48px; }
+    .hero-feature-grid { grid-template-columns: repeat(2, 1fr); }
+    .saas-hero { padding: 40px 0; }
     
-    .main-content { padding: 24px 16px; }
-    
-    .hero-banner { padding: 32px 20px; }
-    .hero-banner h1 { font-size: 32px; }
-
-    /* Balikin ke tumpuk kalau di HP */
-    .dashboard-split { 
-        flex-direction: column; 
-        align-items: stretch; 
-    }
-    .stage-left, .stage-right { width: 100%; }
-    
-    /* Cabut padding-top bantuan tadi kalau di HP */
+    .dashboard-split { flex-direction: column; align-items: stretch;}
     .stage-right { padding-top: 0; }
+    .main-content { padding: 24px 16px; }
+}
+
+/* HP Ukuran Standar (iPhone 12/13, dll) */
+@media screen and (max-width: 600px) {
     
-    .stage-left .card { min-height: 350px; }
+    /* FIX 1: DASHBOARD HEADER NAVBAR (Menumpuk Rapi) */
+    .top-nav {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 20px 16px !important;
+        gap: 16px !important;
+    }
+    .top-nav > div:nth-child(2) {
+        width: 100%;
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+
+    /* FIX 2: JUDUL "LIVE CAMERA FEED" & TOMBOL HUBUNGKAN */
+    .stage-left > div:first-child {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 16px !important;
+    }
+    .stage-left > div:first-child button {
+        width: 100% !important;
+        justify-content: center;
+    }
+
+    /* FIX 3: BADGE DI DALAM KOTAK VIDEO (Biar Gak Nabrak) */
+    .stage-left .card > div:first-child {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+
+    /* FIX 4: LANDING PAGE HEADER */
+    .saas-navbar { flex-direction: column; gap: 16px; margin-bottom: 32px; align-items: center; }
+    .system-status { width: 100%; justify-content: center; font-size: 11px; padding: 8px 16px; }
+
+    /* FIX 5: HERO LANDING PAGE */
+    .hero-pill { font-size: 11px; padding: 4px 12px 4px 4px; }
+    .pill-badge { font-size: 9px; padding: 3px 8px; }
+    .hero-title { font-size: 36px; margin-bottom: 16px; }
+    .hero-desc { font-size: 15px; margin-bottom: 32px; padding: 0 10px; }
+
+    .hero-feature-grid { grid-template-columns: 1fr; gap: 12px; }
+    .hf-card { padding: 16px; flex-direction: row; justify-content: flex-start; }
+    .hf-icon { width: 40px; height: 40px; }
+
+    .hero-actions { width: 100%; padding: 0 10px; }
+    .btn-saas-primary { width: 100%; justify-content: center; padding: 14px 20px; font-size: 15px; }
+
+    .team-container { padding: 40px 20px 30px; border-radius: 24px; }
+    .team-container h2 { font-size: 28px; }
+    .team-card { padding: 24px; }
+
+    .modal-card { padding: 32px 24px; }
+    .auth-tab-btn { font-size: 13px; padding: 12px; }
+}
+
+/* HP Ukuran Sangat Kecil (iPhone SE) */
+@media screen and (max-width: 400px) {
+    .hero-title { font-size: 32px; }
+    .system-status { font-size: 10px; gap: 8px; }
 }

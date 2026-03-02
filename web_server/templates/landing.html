@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="phaseSetup" class="landing-wrap">
+        
+    <header class="saas-navbar">
+        <div class="logo">
+            LacakTani<span class="text-primary">.ai</span>
+        </div>
+        <div class="system-status">
+            <span class="status-indicator">
+                <span class="pulse-dot"></span>
+                SYSTEM ONLINE
+            </span>
+            <span class="separator">|</span>
+            <span id="currentTime" class="time-display">00:00:00 PM</span>
+        </div>
+    </header>
+
+    <section class="saas-hero">
+        <div class="hero-pill">
+            <span class="pill-badge">Pembaruan</span>
+            Engine26 YOLOv5 Core Terintegrasi
+        </div>
+        
+        <h1 class="hero-title">
+            Inteligensi Udara untuk <br>
+            <span class="text-gradient">Agrikultur Presisi</span>
+        </h1>
+        
+        <p class="hero-desc">
+            Sistem inferensi *vision* end-to-end. Dirancang khusus untuk memproses aliran video drone dan edge computing di area perkebunan tanpa setup server lokal yang rumit.
+        </p>
+        
+        <div class="hero-actions">
+            <button id="btnBukaModalAuth" class="btn-saas-primary">
+                Mulai Deteksi Sekarang
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+
+        <div class="hero-feature-grid">
+            <div class="hf-card">
+                <div class="hf-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle></svg></div>
+                <span>Real-time Inference</span>
+            </div>
+            <div class="hf-card">
+                <div class="hf-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line></svg></div>
+                <span>Hardware Agnostic</span>
+            </div>
+            <div class="hf-card">
+                <div class="hf-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path></svg></div>
+                <span>Geo-Heatmap Analytics</span>
+            </div>
+            <div class="hf-card">
+                <div class="hf-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div>
+                <span>YOLOv5 Optimized</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="howItWorks" class="saas-workflow">
+        <div class="section-header">
+            <h2>Arsitektur Alur Kerja</h2>
+            <p>Deployment didesain sesederhana mungkin. Langsung terbang, langsung deteksi.</p>
+        </div>
+
+        <div class="workflow-grid">
+            <div class="wf-card">
+                <div class="wf-step">01</div>
+                <h4>Deploy Hardware</h4>
+                <p>Terbangkan drone yang telah dilengkapi kamera atau pasang modul ESP32-CAM di tiang blok perkebunan.</p>
+            </div>
+            <div class="wf-card">
+                <div class="wf-step">02</div>
+                <h4>Establish Link</h4>
+                <p>Masukkan IP Address Stream video ke dalam Dashboard Web untuk mengunci koneksi latensi rendah.</p>
+            </div>
+            <div class="wf-card highlight-card">
+                <div class="wf-step highlight-step">03</div>
+                <h4>AI Inference</h4>
+                <p>Mesin YOLOv5 memproses aliran video secara real-time, mengklasifikasikan 3 fase komoditas dengan presisi tinggi.</p>
+            </div>
+            <div class="wf-card">
+                <div class="wf-step">04</div>
+                <h4>Analytics & Export</h4>
+                <p>Akhiri sesi penerbangan. Data dikompilasi menjadi peta persebaran (Heatmap) dan estimasi yield panen.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="saas-team">
+        <div class="team-container">
+            <h2>Pilar di Balik Teknologi</h2>
+            <p class="team-sub">Dikembangkan oleh mahasiswa tingkat akhir yang kekurangan tidur demi efisiensi agrikultur masa depan.</p>
+            
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="avatar agung-avatar">A</div>
+                    <h3>Agung</h3>
+                    <div class="role role-red">CEO</div>
+                    <p></p>
+                </div>
+
+                <div class="team-card">
+                    <div class="avatar fauzan-avatar">F</div>
+                    <h3>Fauzan</h3>
+                    <div class="role role-green">CEO</div>
+                    <p></p>
+                </div>
+            </div>
+            
+            <div class="footer-credit">
+                © 2026 LacakTani Inc. Dibuat dengan 🩸 keringat dan ☕ kopi untuk Tugas Akhir PNJ.
+            </div>
+        </div>
+    </section>
+
+    <div class="saas-modal" id="modalAuth">
+        <div class="modal-card">
+            <div class="auth-tab">
+                <button class="auth-tab-btn active" id="tabLogin">Login Workspace</button>
+                <button class="auth-tab-btn" id="tabRegister">Daftar Baru</button>
+            </div>
+            
+            <form id="loginForm">
+                <input type="text" id="logUser" placeholder="Masukkan Username" class="saas-input" required>
+                <input type="password" id="logPass" placeholder="Masukkan Password" class="saas-input" required>
+                <button type="submit" class="btn-saas-primary w-100" id="btnLoginBtn">Otorisasi & Masuk</button>
+            </form>
+
+            <form id="registerForm" style="display: none;">
+                <input type="text" id="regUser" placeholder="Buat ID Username" class="saas-input" required>
+                <input type="password" id="regPass" placeholder="Buat Kata Sandi Kuat" class="saas-input" required>
+                <button type="submit" class="btn-saas-primary w-100" id="btnRegBtn">Buat Kredensial Baru</button>
+            </form>
+            
+            <button id="btnTutupAuthModal" class="btn-close-modal">← Batalkan Proses</button>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

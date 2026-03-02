@@ -6,8 +6,19 @@ import requests # Tambahin ini di bagian atas
 from urllib.parse import urlparse # Buat misahin IP dari URL stream
 import time
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+
 
 app = Flask(__name__)
+
+# Setup Database & Login
+app.config['SECRET_KEY'] = 'rahasia-lacaktani' 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lacaktani.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
 
 # ----- Variable Global -----
 ACTIVE_CAMERA_URL = None
@@ -31,11 +42,73 @@ ALLOWED_EXTENSIONS = {'pt'} # Harga mati, cuma boleh format PyTorch/YOLO
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 # Batas maksimal 50MB biar server gak jebol
 
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    
+    # Pengaturan Tersimpan (Default Value)
+    cam_res = db.Column(db.String(10), default="6")
+    cam_bright = db.Column(db.Integer, default=0)
+    cam_contrast = db.Column(db.Integer, default=0)
+    cam_sat = db.Column(db.Integer, default=0)
+    cam_exp = db.Column(db.Integer, default=0)
+    ai_conf = db.Column(db.Float, default=0.50)
+
+    # --- 5 TAMBAHAN BARU UNTUK AI VISION ---
+    cam_vflip = db.Column(db.Integer, default=0)
+    cam_hmirror = db.Column(db.Integer, default=0)
+    cam_awb = db.Column(db.Integer, default=1) # 1 = Aktif
+    cam_aec = db.Column(db.Integer, default=1) # 1 = Aktif
+    cam_lenc = db.Column(db.Integer, default=1) # 1 = Aktif
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+with app.app_context():
+    db.create_all()
+
 # --- ROUTE UTAMA ---
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if current_user.is_authenticated:
+        return render_template('dashboard.html')
+    else:
+        return render_template('landing.html')
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    if User.query.filter_by(username=username).first():
+        return jsonify({'status': 'error', 'message': 'Username sudah terpakai!'})
+        
+    new_user = User(username=username, password=generate_password_hash(password, method='pbkdf2:sha256'))
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': 'Akun berhasil dibuat! Silakan login.'})
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    user = User.query.filter_by(username=data.get('username')).first()
+    if user and check_password_hash(user.password, data.get('password')):
+        login_user(user)
+        return jsonify({'status': 'success'})
+    return jsonify({'status': 'error', 'message': 'Username atau password salah!'})
+
+@app.route('/api/logout', methods=['POST'])
+@login_required
+def logout():
+    global ACTIVE_CAMERA_URL, AI_ACTIVE
+    ACTIVE_CAMERA_URL = None 
+    AI_ACTIVE = False
+    logout_user()
+    return jsonify({'status': 'success'})
 
 def generate_frames():
     global ACTIVE_CAMERA_URL, current_fps, count_matang, count_mentah, count_bunga, AI_ACTIVE, AI_CONFIDENCE
@@ -172,30 +245,32 @@ def set_resolution():
     except Exception as e:
         return jsonify({'status': 'error', 'message': 'Gagal menghubungi ESP32'}), 500
     
-# --- ROUTE KONTROL VISUAL ESP32 (Brightness, Contrast, dll) ---
 @app.route('/api/cam_control', methods=['POST'])
+@login_required
 def cam_control():
-    global ACTIVE_CAMERA_URL
-    if not ACTIVE_CAMERA_URL:
-        return jsonify({'status': 'error', 'message': 'Kamera belum terhubung'}), 400
-
     data = request.json
     var_name = data.get('var') 
-    val = data.get('val')      
+    val = int(data.get('val'))      
     
-    parsed_url = urlparse(ACTIVE_CAMERA_URL)
-    ip_address = parsed_url.hostname 
-
-    control_url = f"http://{ip_address}/control?var={var_name}&val={val}"
-
-    try:
-        requests.get(control_url, timeout=2)
-        return jsonify({'status': 'success'})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': 'Gagal mengirim kontrol ke ESP32'}), 500
+    # SIMPAN KE DATABASE USER!
+    if var_name == 'brightness': current_user.cam_bright = val
+    elif var_name == 'contrast': current_user.cam_contrast = val
+    elif var_name == 'saturation': current_user.cam_sat = val
+    elif var_name == 'ae_level': current_user.cam_exp = val
+    # -- Tambahan simpan ke DB --
+    elif var_name == 'vflip': current_user.cam_vflip = val
+    elif var_name == 'hmirror': current_user.cam_hmirror = val
+    elif var_name == 'awb': current_user.cam_awb = val
+    elif var_name == 'aec': current_user.cam_aec = val
+    elif var_name == 'lenc': current_user.cam_lenc = val
     
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    db.session.commit()
+
+    if ACTIVE_CAMERA_URL:
+        ip = urlparse(ACTIVE_CAMERA_URL).hostname 
+        try: requests.get(f"http://{ip}/control?var={var_name}&val={val}", timeout=2)
+        except: pass
+    return jsonify({'status': 'success'})
 
 # --- ROUTE UPLOAD MODEL BARU ---
 @app.route('/api/upload_model', methods=['POST'])
