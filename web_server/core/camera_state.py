@@ -10,6 +10,7 @@ class CameraState:
         self.AI_CONFIDENCE = 0.50
         self.CURRENT_MODEL = 'best.pt'
         self.AI_ACTIVE = False
+        self.current_session_id = None # Buat nginget ID penerbangan yang lagi jalan
 
 # Bikin satu "gudang" state yang bisa di-import dari mana aja
 cam_state = CameraState()

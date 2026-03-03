@@ -26,19 +26,22 @@ def generate_frames():
         # Kalau AI nyala, lempar framenya ke detection.py lu
         if cam_state.AI_ACTIVE:
             try:
-                frame_ai, counts = process_frame(frame, conf_threshold=cam_state.AI_CONFIDENCE) 
+                frame_ai, new_counts = process_frame(frame, conf_threshold=cam_state.AI_CONFIDENCE) 
                 frame = frame_ai
                 
-                # Simpan angkanya ke brankas state
-                cam_state.count_matang = counts.get('matang', 0)
-                cam_state.count_mentah = counts.get('mentah', 0)
-                cam_state.count_bunga = counts.get('bunga', 0)
+                # ==========================================
+                # LOGIKA AKUMULASI (PENTING!)
+                # Pake += biar angkanya nambah terus, bukan ditimpa!
+                # ==========================================
+                cam_state.count_matang += new_counts.get('matang', 0)
+                cam_state.count_mentah += new_counts.get('mentah', 0)
+                cam_state.count_bunga += new_counts.get('bunga', 0)
+                
             except Exception as e:
                 print(f"❌ [CRASH DETEKSI AI]: {e}")
                 cv2.putText(frame, "ERROR AI: CEK TERMINAL", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                cam_state.count_matang, cam_state.count_mentah, cam_state.count_bunga = 0, 0, 0
         else:
-            cam_state.count_matang, cam_state.count_mentah, cam_state.count_bunga = 0, 0, 0
+            pass # Kalau AI mati, angkanya beku (freeze) nunggu disave
 
         # Kirim frame ke HTML
         ret, buffer = cv2.imencode('.jpg', frame)

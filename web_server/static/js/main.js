@@ -2,7 +2,8 @@
 
 import { initUIDrawer, initPremiumPopup } from './ui.js';
 import { initAuth, initLogout } from './auth.js';
-import { initCameraStream, initAIControls, initPatrolSession, initHardwareSliders } from './camera_engine.js';
+// 👇 PERHATIKAN BARIS INI: initDragAndDropModel udah gw tambahin di sini
+import { initCameraStream, initAIControls, initPatrolSession, initHardwareSliders, initDragAndDropModel } from './camera_engine.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -20,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         initPatrolSession();
         initHardwareSliders();
         
-        // Logika Upload Model .pt (Bisa ditambahkan jadi module terpisah kalau mau)
-        // ... (Logika upload model tetap ditaruh disini atau dipindah ke ai_engine.js nanti)
+        // 👇 PERHATIKAN BARIS INI: Fungsinya sekarang dipanggil!
+        initDragAndDropModel(); 
     }
 
 });

@@ -1,6 +1,8 @@
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
 
-/* --- 1. VARIABEL & RESET --- */
+/* =========================================================
+   1. VARIABEL & RESET
+   ========================================================= */
 :root {
     --font-main: 'Satoshi', -apple-system, sans-serif;
     --bg-body: #F8FAFC;       
@@ -24,41 +26,150 @@ body {
     color: var(--text-dark);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased; 
+    overflow-x: hidden; /* Mencegah layar bisa digeser ke kanan-kiri di HP */
 }
 
 /* =========================================================
-   2. DASHBOARD & SIDE DRAWER PENGATURAN
+   2. DASHBOARD & STRUKTUR UTAMA
    ========================================================= */
-.app-layout { display: flex; min-height: 100vh; width: 100vw; overflow-x: hidden; background-color: var(--bg-body); }
-.main-content { flex: 1; padding: 40px 56px; min-width: 0; }
-.top-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 50; }
+.app-layout { 
+    display: flex; 
+    min-height: 100vh; 
+    width: 100vw; 
+    background-color: var(--bg-body); 
+}
+.main-content { 
+    flex: 1; 
+    padding: 40px 56px; 
+    min-width: 0; 
+}
+.top-nav { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 16px 32px; 
+    background: var(--bg-card); 
+    border-bottom: 1px solid var(--border-color); 
+    position: sticky; 
+    top: 0; 
+    z-index: 50; 
+}
 
-.dashboard-split { display: flex; gap: 24px; align-items: stretch; }
-.stage-left { flex: 6; display: flex; flex-direction: column; }
-.stage-right { flex: 4; display: flex; flex-direction: column; gap: 20px; padding-top: 52px; }
+.dashboard-split { 
+    display: flex; 
+    gap: 24px; 
+    align-items: stretch; 
+}
+.stage-left { 
+    flex: 6; 
+    display: flex; 
+    flex-direction: column; 
+    min-width: 0; /* Mencegah container nabrak di layar kecil */
+}
+.stage-right { 
+    flex: 4; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+    padding-top: 52px; 
+}
 
-.card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 32px; box-shadow: var(--shadow-sm); }
-.btn-outline { background: white; color: var(--text-dark); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; font-weight: 600; font-family: inherit; cursor: pointer; transition: 0.2s; }
-.btn-outline:hover { border-color: var(--text-muted); background: #F1F5F9; }
-.icon-svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.card { 
+    background: var(--bg-card); 
+    border: 1px solid var(--border-color); 
+    border-radius: 20px; 
+    padding: 32px; 
+    box-shadow: var(--shadow-sm); 
+}
 
-.status-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
-.dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
+/* KOMPONEN KECIL */
+.btn-outline { 
+    background: white; 
+    color: var(--text-dark); 
+    border: 1px solid var(--border-color); 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    font-family: inherit; 
+    cursor: pointer; 
+    transition: 0.2s; 
+}
+.btn-outline:hover { 
+    border-color: var(--text-muted); 
+    background: #F1F5F9; 
+}
+.icon-svg { 
+    width: 18px; 
+    height: 18px; 
+    stroke: currentColor; 
+    stroke-width: 2; 
+    fill: none; 
+    stroke-linecap: round; 
+    stroke-linejoin: round; 
+}
+.status-badge { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+    font-size: 13px; 
+    font-weight: 700; 
+}
+.dot { 
+    width: 8px; 
+    height: 8px; 
+    background: var(--primary); 
+    border-radius: 50%; 
+}
 
-/* Slider Khusus SaaS di Drawer */
-.saas-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--border-color); border-radius: 10px; outline: none; cursor: pointer; margin-top: 6px; }
-.saas-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; box-shadow: 0 2px 6px rgba(225, 29, 72, 0.4); transition: transform 0.1s ease; }
+/* Slider Custom */
+.saas-slider { 
+    -webkit-appearance: none; 
+    appearance: none; 
+    width: 100%; 
+    height: 6px; 
+    background: var(--border-color); 
+    border-radius: 10px; 
+    outline: none; 
+    cursor: pointer; 
+    margin-top: 6px; 
+}
+.saas-slider::-webkit-slider-thumb { 
+    -webkit-appearance: none; 
+    appearance: none; 
+    width: 18px; 
+    height: 18px; 
+    border-radius: 50%; 
+    background: var(--primary); 
+    cursor: pointer; 
+    box-shadow: 0 2px 6px rgba(225, 29, 72, 0.4); 
+    transition: transform 0.1s ease; 
+}
 .saas-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
-/* SIDE DRAWER (PENGATURAN) - FIX LEBAR UNTUK HP */
-.drawer-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 99; opacity: 0; visibility: hidden; transition: 0.3s ease; }
-.drawer-overlay.active { opacity: 1; visibility: visible; }
+/* =========================================================
+   3. DRAWER (PENGATURAN SAMPING)
+   ========================================================= */
+.drawer-overlay { 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100vw; height: 100vh; 
+    background: rgba(15, 23, 42, 0.4); 
+    backdrop-filter: blur(4px); 
+    z-index: 99; 
+    opacity: 0; 
+    visibility: hidden; 
+    transition: 0.3s ease; 
+}
+.drawer-overlay.active { 
+    opacity: 1; 
+    visibility: visible; 
+}
 .side-drawer { 
     position: fixed; 
     top: 0; 
-    right: -100%; /* Sembunyikan sepenuhnya pakai persentase */
+    right: -100%; 
     width: 100%; 
-    max-width: 400px; /* Di desktop max 400px, di HP ngikutin layar */
+    max-width: 400px; 
     height: 100vh; 
     background: var(--bg-card); 
     box-shadow: -10px 0 25px rgba(0,0,0,0.1); 
@@ -73,10 +184,9 @@ body {
 .drawer-content { padding: 24px; overflow-y: auto; flex: 1; }
 
 /* =========================================================
-   3. LANDING PAGE UTAMA (SAAS THEME)
+   4. LANDING PAGE (MARKETING SAAS)
    ========================================================= */
-.landing-wrap { max-width: 1200px; margin: 0 auto; padding: 0 5%; overflow-x: hidden; }
-
+.landing-wrap { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
 .saas-navbar { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; margin-bottom: 40px; }
 .logo { font-size: 24px; font-weight: 900; letter-spacing: -0.02em; color: var(--text-dark); }
 .text-primary { color: var(--primary); }
@@ -98,7 +208,7 @@ body {
 .hero-desc { font-size: 18px; color: var(--text-muted); max-width: 650px; line-height: 1.6; margin-bottom: 40px; }
 
 .hero-actions { display: flex; gap: 16px; margin-bottom: 80px; }
-.btn-saas-primary { background: var(--text-dark); color: white; border: none; padding: 16px 32px; border-radius: 100px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.3); }
+.btn-saas-primary { background: var(--text-dark); color: white; border: none; padding: 16px 32px; border-radius: 100px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.3); }
 .btn-saas-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 25px -5px rgba(15, 23, 42, 0.4); background: #000000; }
 
 .hero-feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; }
@@ -113,7 +223,7 @@ body {
 .section-header p { font-size: 16px; color: var(--text-muted); max-width: 500px; margin: 0 auto; }
 
 .workflow-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
-.wf-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 32px; border-radius: 24px; box-shadow: var(--shadow-sm); transition: 0.3s; }
+.wf-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 32px; border-radius: 24px; box-shadow: var(--shadow-sm); transition: 0.3s; position: relative; }
 .wf-card:hover { box-shadow: var(--shadow-lg); }
 .wf-step { font-size: 14px; font-weight: 900; color: var(--text-muted); background: #F8FAFC; padding: 8px 16px; border-radius: 100px; display: inline-block; margin-bottom: 24px; border: 1px solid var(--border-color); }
 .wf-card h4 { font-size: 18px; font-weight: 800; margin-bottom: 12px; }
@@ -138,10 +248,38 @@ body {
 .team-card p { font-size: 14px; color: #94A3B8; line-height: 1.6; }
 .footer-credit { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 32px; font-size: 12px; color: #64748B; }
 
-/* MODALS */
-.saas-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 100; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.4s ease; }
+/* =========================================================
+   5. MODAL GLOBAL
+   ========================================================= */
+.saas-modal { 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100vw; height: 100vh; 
+    background: rgba(15, 23, 42, 0.6); 
+    backdrop-filter: blur(8px); 
+    z-index: 999; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    opacity: 0; 
+    visibility: hidden; 
+    transition: 0.4s ease; 
+}
 .saas-modal.active { opacity: 1; visibility: visible; }
-.modal-card { background: var(--bg-card); padding: 48px; border-radius: 32px; width: 100%; max-width: 440px; text-align: center; transform: translateY(30px); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); margin: 0 16px; }
+.modal-card { 
+    background: var(--bg-card); 
+    padding: 48px; 
+    border-radius: 32px; 
+    width: 90%; /* Responsif di HP */
+    max-width: 440px; 
+    text-align: center; 
+    transform: translateY(30px); 
+    transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
+    box-shadow: var(--shadow-lg); 
+    border: 1px solid var(--border-color); 
+    max-height: 90vh; /* Cegah modal kepanjangan */
+    overflow-y: auto; /* Bisa discroll kalau isinya banyak */
+}
 .saas-modal.active .modal-card { transform: translateY(0); }
 
 .auth-tab { display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 32px; }
@@ -149,7 +287,19 @@ body {
 .auth-tab-btn:hover { color: var(--text-dark); }
 .auth-tab-btn.active { color: var(--text-dark); border-bottom: 3px solid var(--text-dark); }
 
-.saas-input { width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--border-color); font-size: 15px; font-weight: 500; outline: none; background: #F8FAFC; transition: 0.2s; margin-bottom: 16px; font-family: inherit;}
+.saas-input { 
+    width: 100%; 
+    padding: 16px; 
+    border-radius: 12px; 
+    border: 2px solid var(--border-color); 
+    font-size: 15px; 
+    font-weight: 500; 
+    outline: none; 
+    background: #F8FAFC; 
+    transition: 0.2s; 
+    margin-bottom: 16px; 
+    font-family: inherit;
+}
 .saas-input:focus { border-color: var(--text-dark); background: white; box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05); }
 
 .w-100 { width: 100%; justify-content: center; margin-top: 8px; }
@@ -163,81 +313,137 @@ body {
 }
 
 /* =========================================================
-   4. PERBAIKAN RESPONSIVE (MOBILE & TABLET)
+   6. RIWAYAT PATROLI & DRAG AND DROP
+   ========================================================= */
+.riwayat-super-wrapper { background-color: #F8FAFC; color: #1E293B; min-height: 100vh; padding: 60px 20px; font-family: 'Inter', system-ui, sans-serif; }
+.riwayat-container { max-width: 1100px; margin: 0 auto; }
+.riwayat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+.riwayat-title { color: #0F172A; margin: 0; font-size: 2.2rem; font-weight: 900; letter-spacing: -0.5px; }
+.riwayat-subtitle { color: #64748B; margin-top: 8px; font-size: 1rem; }
+
+.filter-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+.filter-input { background: #FFFFFF; border: 1px solid #CBD5E1; color: #1E293B; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; outline: none; transition: 0.3s; flex: 1; min-width: 150px; }
+.filter-input:focus { border-color: #E11D48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1); }
+
+.btn-cari { background: #E11D48; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; box-shadow: 0 4px 14px 0 rgba(225, 29, 72, 0.2); }
+.btn-cari:hover { box-shadow: 0 6px 20px rgba(225, 29, 72, 0.4); transform: translateY(-1px); }
+.btn-reset { background: #F1F5F9; color: #475569; padding: 12px 20px; border-radius: 8px; cursor: pointer; border: 1px solid #CBD5E1; font-weight: 600; transition: 0.2s; }
+.btn-reset:hover { background: #E2E8F0; color: #1E293B; }
+
+.light-table-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: var(--shadow-sm); overflow-x: auto; }
+.r-table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
+.r-table th { padding: 16px 24px; font-weight: 700; color: #64748B; border-bottom: 1px solid #E2E8F0; background: #F8FAFC; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+.r-table td { padding: 16px 24px; border-bottom: 1px solid #F1F5F9; color: #334155; font-size: 0.95rem; }
+.r-table tr:hover td { background: #F8FAFC; }
+
+.badge { padding: 6px 14px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+.badge-done { background: #D1FAE5; color: #065F46; border: 1px solid #34D399; }
+.badge-run { background: #FEF3C7; color: #92400E; border: 1px solid #FBBF24; }
+.btn-kembali { background: #E11D48; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(225, 29, 72, 0.2); transition: 0.2s; }
+
+/* Drag Drop List */
+.sortable-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.sortable-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; cursor: grab; transition: 0.2s; }
+.sortable-item:active { cursor: grabbing; }
+.sortable-item.dragging { opacity: 0.5; background: #F8FAFC; border: 1px dashed #E11D48; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+.sortable-item.active-model { border: 1px solid #10B981; background: rgba(16, 185, 129, 0.05); }
+.drag-handle { color: #94A3B8; font-weight: 900; font-size: 14px; letter-spacing: -2px; }
+.model-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+.badge-active-model { background: #10B981; color: white; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+
+/* =========================================================
+   7. MEDIA QUERIES (FULL RESPONSIVE ANDROID / MOBILE)
    ========================================================= */
 
-@media screen and (max-width: 900px) {
+/* Tablet & Laptop Kecil */
+@media screen and (max-width: 1024px) {
+    .dashboard-split { flex-direction: column; }
+    .stage-right { padding-top: 0; }
     .hero-title { font-size: 48px; }
     .hero-feature-grid { grid-template-columns: repeat(2, 1fr); }
-    .saas-hero { padding: 40px 0; }
-    
-    .dashboard-split { flex-direction: column; align-items: stretch;}
-    .stage-right { padding-top: 0; }
-    .main-content { padding: 24px 16px; }
 }
 
-/* HP Ukuran Standar (iPhone 12/13, dll) */
-@media screen and (max-width: 600px) {
+/* HP Standar (Android Biasa, iPhone) */
+@media screen and (max-width: 768px) {
     
-    /* FIX 1: DASHBOARD HEADER NAVBAR (Menumpuk Rapi) */
-    .top-nav {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        padding: 20px 16px !important;
-        gap: 16px !important;
+    /* Perbaikan Dashboard Utama di HP */
+    .main-content { padding: 20px 16px; }
+    
+    .top-nav { 
+        flex-direction: column; 
+        align-items: stretch; 
+        padding: 16px; 
+        gap: 16px; 
     }
-    .top-nav > div:nth-child(2) {
-        width: 100%;
-        justify-content: flex-start !important;
-        flex-wrap: wrap !important;
-        gap: 10px !important;
+    .top-nav > div:last-child {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: space-between;
     }
+    
+    .card { padding: 20px; }
 
-    /* FIX 2: JUDUL "LIVE CAMERA FEED" & TOMBOL HUBUNGKAN */
-    .stage-left > div:first-child {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 16px !important;
-    }
-    .stage-left > div:first-child button {
-        width: 100% !important;
-        justify-content: center;
-    }
-
-    /* FIX 3: BADGE DI DALAM KOTAK VIDEO (Biar Gak Nabrak) */
+    /* Perbaikan Overlay Video di HP */
     .stage-left .card > div:first-child {
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 8px !important;
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        margin-bottom: 12px;
+        background: transparent !important;
     }
+    
+    /* Tombol Test Mode AI di HP */
+    .stage-left .card img + div {
+        position: static !important;
+        transform: none !important;
+        margin-top: 16px;
+        width: 100%;
+    }
+    #btnToggleAI { width: 100%; justify-content: center; }
 
-    /* FIX 4: LANDING PAGE HEADER */
-    .saas-navbar { flex-direction: column; gap: 16px; margin-bottom: 32px; align-items: center; }
-    .system-status { width: 100%; justify-content: center; font-size: 11px; padding: 8px 16px; }
-
-    /* FIX 5: HERO LANDING PAGE */
-    .hero-pill { font-size: 11px; padding: 4px 12px 4px 4px; }
-    .pill-badge { font-size: 9px; padding: 3px 8px; }
-    .hero-title { font-size: 36px; margin-bottom: 16px; }
-    .hero-desc { font-size: 15px; margin-bottom: 32px; padding: 0 10px; }
-
-    .hero-feature-grid { grid-template-columns: 1fr; gap: 12px; }
+    /* Perbaikan Landing Page di HP */
+    .saas-navbar { flex-direction: column; gap: 20px; padding: 20px; }
+    .nav-links { flex-direction: column; width: 100%; gap: 12px; }
+    .system-status { width: 100%; justify-content: center; font-size: 11px; padding: 10px; }
+    .nav-link { width: 100%; justify-content: center; background: white; padding: 12px; border-radius: 100px; border: 1px solid var(--border-color); }
+    
+    .saas-hero { padding: 40px 0; }
+    .hero-title { font-size: 36px; }
+    .hero-desc { font-size: 15px; padding: 0 10px; }
+    
+    .hero-actions { flex-direction: column; width: 100%; padding: 0 20px; }
+    .btn-saas-primary, .btn-outline { width: 100%; justify-content: center; }
+    
+    .hero-feature-grid { grid-template-columns: 1fr; padding: 0 20px; }
     .hf-card { padding: 16px; flex-direction: row; justify-content: flex-start; }
-    .hf-icon { width: 40px; height: 40px; }
-
-    .hero-actions { width: 100%; padding: 0 10px; }
-    .btn-saas-primary { width: 100%; justify-content: center; padding: 14px 20px; font-size: 15px; }
-
+    
+    .workflow-grid { grid-template-columns: 1fr; }
+    .wf-card { padding: 24px; }
+    
     .team-container { padding: 40px 20px 30px; border-radius: 24px; }
     .team-container h2 { font-size: 28px; }
-    .team-card { padding: 24px; }
+    .team-card { padding: 24px; max-width: 100%; }
 
-    .modal-card { padding: 32px 24px; }
-    .auth-tab-btn { font-size: 13px; padding: 12px; }
+    /* Perbaikan Modal IP Kamera & Login di HP */
+    .modal-card { padding: 24px; }
+    .modal-card h3 { font-size: 20px; }
+    
+    #modalIP .modal-card > div:first-of-type {
+        flex-direction: column; /* Tombol pilihan ESP32 / Webcam ditumpuk */
+    }
+    #areaKoneksiESP32 > div {
+        flex-direction: column; /* Input IP dan Scan ditumpuk */
+    }
+    #btnAutoScan { width: 100%; padding: 12px; justify-content: center; }
 }
 
-/* HP Ukuran Sangat Kecil (iPhone SE) */
+/* HP Super Kecil */
 @media screen and (max-width: 400px) {
-    .hero-title { font-size: 32px; }
-    .system-status { font-size: 10px; gap: 8px; }
+    .hero-title { font-size: 30px; }
+    .auth-tab-btn { font-size: 13px; padding: 12px; }
 }
