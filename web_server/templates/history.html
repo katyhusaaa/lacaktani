@@ -1,170 +1,319 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="riwayat-super-wrapper">
-    <div class="riwayat-container">
-        
-        <div class="riwayat-header">
-            <div>
-                <h2 class="riwayat-title">Riwayat Patroli <span style="color: #E11D48;">Udara</span></h2>
-                <p class="riwayat-subtitle">Log kalkulasi panen dan status sistem tiap sesi.</p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+    /* Premium Typography & Global Consistency */
+    .history-layout { max-width: 1400px; margin: 32px auto; padding: 0 32px; font-family: 'Inter', 'Satoshi', sans-serif; }
+    
+    .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; }
+    .page-title { font-size: 28px; font-weight: 900; color: #0F172A; letter-spacing: -0.03em; margin: 0 0 4px 0; }
+    .page-subtitle { font-size: 14px; color: #64748B; margin: 0; }
+
+    /* Nav Buttons Consistent with Dashboard */
+    .btn-nav-back { padding: 10px 24px; border-radius: 100px; border: 1px solid #E2E8F0; text-decoration: none; color: #0F172A; font-size: 13px; font-weight: 700; background: white; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-nav-back:hover { background: #F8FAFC; border-color: #0F172A; transform: translateY(-1px); }
+
+    .card { background: white; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
+    
+    /* Summary Cards - Premium SaaS Style */
+    .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 32px; }
+    .summary-card { padding: 24px; display: flex; flex-direction: column; gap: 8px; border-left: 4px solid #E2E8F0; transition: 0.3s; }
+    .summary-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.04); }
+    .sum-title { font-size: 10px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.1em; }
+    .sum-val { font-size: 32px; font-weight: 900; color: #0F172A; line-height: 1; }
+
+    /* Bulk Action Bar - Sticky Dark Header */
+    .bulk-action-bar { 
+        display: none; background: #0F172A; color: white; padding: 16px 32px; border-radius: 16px;
+        position: sticky; top: 20px; z-index: 100; margin-bottom: 24px;
+        justify-content: space-between; align-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Action Bar (Filters) */
+    .action-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; margin-bottom: 24px; }
+    .saas-input-history { padding: 12px 20px; border: 1.5px solid #E2E8F0; border-radius: 12px; font-size: 13px; font-weight: 600; outline: none; transition: 0.2s; background: #F8FAFC; }
+    .saas-input-history:focus { border-color: #E11D48; background: white; box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.05); }
+
+    /* Buttons */
+    .btn-primary-saas { background: #E11D48; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 13px; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary-saas:hover { background: #BE123C; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(225, 29, 72, 0.2); }
+    
+    .btn-dark-saas { background: #0F172A; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 13px; transition: 0.3s; }
+    .btn-dark-saas:hover { background: #000; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
+    /* Data Table Styling */
+    .table-container { overflow: hidden; border: 1px solid #E2E8F0; border-radius: 20px; }
+    .data-table { width: 100%; border-collapse: collapse; text-align: left; background: white; }
+    .data-table th { background: #F8FAFC; color: #64748B; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 20px 24px; border-bottom: 1px solid #E2E8F0; }
+    .data-table td { padding: 18px 24px; font-size: 14px; font-weight: 600; color: #0F172A; border-bottom: 1px solid #F1F5F9; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: #FAFAFA; }
+    
+    .row-selected { background: #FFF1F2 !important; }
+    
+    .status-badge { padding: 6px 14px; border-radius: 100px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
+    .status-completed { background: #ECFDF5; color: #10B981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .status-running { background: #FFF1F2; color: #E11D48; border: 1px solid rgba(225, 29, 72, 0.1); }
+
+    .check-cell { width: 60px; text-align: center; }
+    input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #E11D48; border-radius: 4px; }
+</style>
+
+<div class="history-layout">
+    
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Database Laporan</h2>
+            <p class="page-subtitle">Kelola riwayat inspeksi dan ekspor analitik sistem.</p>
+        </div>
+        <a href="/" class="btn-nav-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Kembali ke Dashboard
+        </a>
+    </div>
+
+    <div class="summary-grid">
+        <div class="card summary-card" style="border-left-color: #64748B;">
+            <span class="sum-title">Data Dipilih</span>
+            <span class="sum-val" id="countSelected">0</span>
+        </div>
+        <div class="card summary-card" style="border-left-color: #E11D48;">
+            <span class="sum-title">Siap Panen</span>
+            <span class="sum-val" id="sumMatang">0</span>
+        </div>
+        <div class="card summary-card" style="border-left-color: #10B981;">
+            <span class="sum-title">Fase Tumbuh</span>
+            <span class="sum-val" id="sumMentah">0</span>
+        </div>
+        <div class="card summary-card" style="border-left-color: #F59E0B;">
+            <span class="sum-title">Fase Awal</span>
+            <span class="sum-val" id="sumBunga">0</span>
+        </div>
+    </div>
+
+    <div id="bulkBar" class="bulk-action-bar">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px;">
+                <span id="bulkText" style="font-weight: 800; font-size: 13px;">0 ITEM DIPILIH</span>
             </div>
-            <a href="/" class="btn-kembali">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                Kembali ke Dashboard
-            </a>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button onclick="exportSelected()" class="btn-primary-saas" style="background: #10B981;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Ekspor Terpilih
+            </button>
+            <button onclick="handleBulkDelete()" class="btn-primary-saas">Hapus Permanen</button>
+        </div>
+    </div>
+
+    <div class="card action-bar">
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="position: relative;">
+                <input type="text" id="searchInput" class="saas-input-history" placeholder="Cari ID Laporan..." style="padding-left: 40px; width: 240px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="3" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <input type="date" id="dateInput" class="saas-input-history">
+            <select id="statusFilter" class="saas-input-history">
+                <option value="">Semua Status</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="RUNNING">Running</option>
+            </select>
+            <button id="btnResetFilter" style="background:none; border:none; color:#64748B; font-weight:800; font-size:12px; cursor:pointer; padding: 10px;">RESET</button>
         </div>
 
-        <div class="filter-bar">
-            <input type="text" id="searchInput" class="filter-input" placeholder="🔍 Cari ID Sesi atau Status..." style="flex: 1;">
-            <button id="btnSearch" class="btn-cari">Cari</button>
-            <input type="date" id="dateInput" class="filter-input" title="Filter Berdasarkan Tanggal">
-            <button id="btnResetFilter" class="btn-reset">Reset Filter</button>
+        <div style="display: flex; gap: 12px;">
+            <button onclick="exportToExcel()" class="btn-dark-saas">Ekspor Semua (.xlsx)</button>
         </div>
+    </div>
 
-        <div class="light-table-card">
-            <table class="r-table">
-                <thead>
-                    <tr>
-                        <th>ID Sesi</th>
-                        <th>Waktu Mulai</th>
-                        <th>Waktu Selesai</th>
-                        <th>Matang 🍓</th>
-                        <th>Mentah 🍏</th>
-                        <th>Bunga 🌼</th>
-                        <th>Status</th>
-                        <th style="text-align: center;">Aksi</th> </tr>
-                </thead>
-                <tbody id="tableBody">
-                    {% for s in sessions %}
-                    <tr class="history-row" data-date="{{ s.start_time.strftime('%Y-%m-%d') if s.start_time else '' }}">
-                        <td style="font-weight: 900; color: #E11D48;">#{{ s.id }}</td>
-                        <td style="color: #64748B;">{{ s.start_time.strftime('%d %b %Y, %H:%M') if s.start_time else '-' }}</td>
-                        <td style="color: #64748B;">{{ s.end_time.strftime('%d %b %Y, %H:%M') if s.end_time else '-' }}</td>
-                        
-                        <td style="font-weight: 800; color: #10B981; font-size: 1.1rem;">{{ s.total_matang }}</td>
-                        <td style="font-weight: 600;">{{ s.total_mentah }}</td>
-                        <td style="font-weight: 600;">{{ s.total_bunga }}</td>
-                        
-                        <td>
-                            {% if s.status == 'completed' %}
-                                <span class="badge badge-done">Selesai</span>
-                            {% else %}
-                                <span class="badge badge-run">Berjalan...</span>
-                            {% endif %}
-                        </td>
-                        
-                        <td style="text-align: center;">
-                            <button class="btn-delete-session" data-id="{{ s.id }}" style="background: none; border: none; color: #E11D48; cursor: pointer; padding: 6px; transition: 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Hapus Laporan">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                            </button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr id="emptyStateRow">
-                        <td colspan="8" style="padding: 60px; text-align: center; color: #94A3B8; font-size: 1.1rem;">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display: block; margin: 0 auto 16px; opacity: 0.5;">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
-                            </svg>
-                            Belum ada log penerbangan. Terbanglah kapten! 🚁
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
+    <div class="table-container">
+        <table class="data-table" id="historyTable">
+            <thead>
+                <tr>
+                    <th class="check-cell"><input type="checkbox" id="selectAll"></th>
+                    <th width="10%">ID</th>
+                    <th width="20%">Waktu Mulai</th>
+                    <th width="20%">Waktu Selesai</th>
+                    <th width="10%">Matang</th>
+                    <th width="10%">Mentah</th>
+                    <th width="10%">Bunga</th>
+                    <th width="12%">Status</th>
+                    <th width="8%" style="text-align: center;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                {% for s in sessions %}
+                <tr class="history-row" data-date="{{ s.start_time.strftime('%Y-%m-%d') if s.start_time else '' }}">
+                    <td class="check-cell"><input type="checkbox" class="row-checkbox" data-id="{{ s.id }}"></td>
+                    <td style="font-family: monospace; color: #64748B; font-weight: 800;">#{{ s.id }}</td>
+                    <td style="color: #64748B;">{{ s.start_time.strftime('%d %b %Y, %H:%M') if s.start_time else '-' }}</td>
+                    <td style="color: #64748B;">{{ s.end_time.strftime('%d %b %Y, %H:%M') if s.end_time else '-' }}</td>
+                    <td class="raw-matang" style="color: #E11D48; font-weight: 800;">{{ s.total_matang }}</td>
+                    <td class="raw-mentah" style="color: #10B981;">{{ s.total_mentah }}</td>
+                    <td class="raw-bunga" style="color: #F59E0B;">{{ s.total_bunga }}</td>
+                    <td class="col-status">
+                        {% if s.status == 'completed' %}
+                            <span class="status-badge status-completed">COMPLETED</span>
+                        {% else %}
+                            <span class="status-badge status-running">RUNNING</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <button onclick="deleteSingle('{{ s.id }}')" style="background:none; border:none; color:#94A3B8; cursor:pointer; transition:0.2s;" onmouseover="this.style.color='#E11D48'" onmouseout="this.style.color='#94A3B8'">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="9" style="text-align: center; padding: 100px; color: #64748B; font-weight: 700;">Database Kosong</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- LOGIKA FILTER PENCARIAN ---
-        const searchInput = document.getElementById('searchInput');
-        const dateInput = document.getElementById('dateInput');
-        const btnSearch = document.getElementById('btnSearch');
-        const btnReset = document.getElementById('btnResetFilter');
+        const tableBody = document.getElementById('tableBody');
+        const bulkBar = document.getElementById('bulkBar');
+        const countSelected = document.getElementById('countSelected');
+        const selectAll = document.getElementById('selectAll');
         const rows = document.querySelectorAll('.history-row');
 
-        const filterData = () => {
-            const searchText = searchInput.value.toLowerCase();
-            const searchDate = dateInput.value;
+        // Logic for Bulk Selection UI
+        const updateBulkUI = () => {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            const count = checkedBoxes.length;
+            
+            bulkBar.style.display = count > 0 ? 'flex' : 'none';
+            document.getElementById('bulkText').innerText = `${count} DATA DIPILIH`;
+            countSelected.innerText = count;
 
-            rows.forEach(row => {
-                const textContent = row.innerText.toLowerCase();
-                const rowDate = row.getAttribute('data-date');
-
-                const matchText = textContent.includes(searchText);
-                const matchDate = searchDate === '' || rowDate === searchDate;
-
-                if (matchText && matchDate) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+            document.querySelectorAll('.row-checkbox').forEach(cb => {
+                cb.closest('tr').classList.toggle('row-selected', cb.checked);
             });
         };
 
-        if (btnSearch) btnSearch.addEventListener('click', filterData);
-        if (searchInput) {
-            searchInput.addEventListener('keyup', (e) => {
-                if(e.key === 'Enter') filterData();
-                if(searchInput.value === '') filterData(); 
-            });
-        }
-        if (dateInput) dateInput.addEventListener('change', filterData);
-
-        if (btnReset) {
-            btnReset.addEventListener('click', () => {
-                searchInput.value = '';
-                dateInput.value = '';
-                filterData(); 
-            });
-        }
-
-        // --- LOGIKA HAPUS DATA (SWEETALERT + FETCH API) ---
-        const deleteButtons = document.querySelectorAll('.btn-delete-session');
-
-        deleteButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const sessionId = this.getAttribute('data-id');
-
-                Swal.fire({
-                    title: 'Hapus Laporan Patroli?',
-                    text: "Data estimasi panen untuk sesi #" + sessionId + " ini akan dihapus permanen.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#E11D48',
-                    cancelButtonColor: '#94A3B8',
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        try {
-                            const response = await fetch(`/api/delete_session/${sessionId}`, {
-                                method: 'DELETE'
-                            });
-                            const data = await response.json();
-
-                            if (data.status === 'success') {
-                                Swal.fire(
-                                    'Terhapus!',
-                                    data.message,
-                                    'success'
-                                ).then(() => {
-                                    // Refresh otomatis biar baris di tabel hilang
-                                    location.reload(); 
-                                });
-                            } else {
-                                Swal.fire('Gagal!', data.message, 'error');
-                            }
-                        } catch (error) {
-                            Swal.fire('Error!', 'Terjadi kesalahan jaringan.', 'error');
-                        }
-                    }
-                });
-            });
+        tableBody.addEventListener('change', (e) => {
+            if (e.target.classList.contains('row-checkbox')) updateBulkUI();
         });
+
+        selectAll.addEventListener('change', () => {
+            const visibleCheckboxes = Array.from(document.querySelectorAll('.history-row'))
+                .filter(r => r.style.display !== 'none')
+                .map(r => r.querySelector('.row-checkbox'));
+            
+            visibleCheckboxes.forEach(cb => cb.checked = selectAll.checked);
+            updateBulkUI();
+        });
+
+        // Filter & Summary Logic
+        const updateSummary = () => {
+            let tMatang = 0, tMentah = 0, tBunga = 0;
+            const visibleRows = Array.from(rows).filter(r => r.style.display !== 'none');
+
+            visibleRows.forEach(row => {
+                tMatang += parseInt(row.querySelector('.raw-matang').innerText) || 0;
+                tMentah += parseInt(row.querySelector('.raw-mentah').innerText) || 0;
+                tBunga += parseInt(row.querySelector('.raw-bunga').innerText) || 0;
+            });
+
+            document.getElementById('sumMatang').innerText = tMatang;
+            document.getElementById('sumMentah').innerText = tMentah;
+            document.getElementById('sumBunga').innerText = tBunga;
+        };
+
+        const filterData = () => {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const searchDate = document.getElementById('dateInput').value;
+            const statusType = document.getElementById('statusFilter').value;
+
+            rows.forEach(row => {
+                const idMatch = row.innerText.toLowerCase().includes(searchText);
+                const dateMatch = !searchDate || row.getAttribute('data-date') === searchDate;
+                const statusMatch = !statusType || row.querySelector('.col-status').innerText.includes(statusType);
+                row.style.display = (idMatch && dateMatch && statusMatch) ? '' : 'none';
+            });
+            updateSummary();
+        };
+
+        ['searchInput', 'dateInput', 'statusFilter'].forEach(id => {
+            document.getElementById(id).addEventListener('input', filterData);
+        });
+
+        document.getElementById('btnResetFilter').addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('dateInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            filterData();
+        });
+
+        updateSummary();
     });
+
+    // Delete & Export Functions
+    async function deleteSingle(id) {
+        const result = await Swal.fire({ 
+            title: 'Hapus data?', 
+            icon: 'warning', 
+            showCancelButton: true, 
+            confirmButtonColor: '#E11D48',
+            cancelButtonColor: '#94A3B8',
+            confirmButtonText: 'Ya, Hapus'
+        });
+        if (result.isConfirmed) {
+            const res = await fetch(`/api/delete_session/${id}`, { method: 'DELETE' });
+            if ((await res.json()).status === 'success') location.reload();
+        }
+    }
+
+    async function handleBulkDelete() {
+        const ids = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.dataset.id);
+        const result = await Swal.fire({ 
+            title: `Hapus ${ids.length} data?`, 
+            text: "Data yang dihapus tidak dapat dipulihkan.", 
+            icon: 'warning', 
+            showCancelButton: true, 
+            confirmButtonColor: '#E11D48',
+            confirmButtonText: 'Hapus Semua'
+        });
+
+        if (result.isConfirmed) {
+            for (let id of ids) { await fetch(`/api/delete_session/${id}`, { method: 'DELETE' }); }
+            location.reload();
+        }
+    }
+
+    function exportSelected() {
+        const checkedRows = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.closest('tr'));
+        const dataArray = [['ID Sesi', 'Mulai', 'Selesai', 'Matang', 'Mentah', 'Berbunga', 'Status']];
+        checkedRows.forEach(row => {
+            const cols = row.querySelectorAll('td');
+            dataArray.push([cols[1].innerText, cols[2].innerText, cols[3].innerText, cols[4].innerText, cols[5].innerText, cols[6].innerText, cols[7].innerText]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(dataArray);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Laporan_Terpilih");
+        XLSX.writeFile(wb, "LacakTani_Export_Terpilih.xlsx");
+    }
+
+    function exportToExcel() {
+        const rows = document.querySelectorAll('.history-row');
+        let dataArray = [['ID Sesi', 'Mulai', 'Selesai', 'Matang', 'Mentah', 'Berbunga', 'Status']];
+        rows.forEach(row => {
+            if(row.style.display !== 'none') {
+                const cols = row.querySelectorAll('td');
+                dataArray.push([cols[1].innerText, cols[2].innerText, cols[3].innerText, cols[4].innerText, cols[5].innerText, cols[6].innerText, cols[7].innerText]);
+            }
+        });
+        const ws = XLSX.utils.aoa_to_sheet(dataArray);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Riwayat_Lengkap");
+        XLSX.writeFile(wb, "LacakTani_Database_Lengkap.xlsx");
+    }
 </script>
 {% endblock %}

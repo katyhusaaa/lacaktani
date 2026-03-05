@@ -2,82 +2,75 @@
 import { Toast } from './ui.js';
 
 // ==========================================
+// FUNGSI RESET MANUAL (TOMBOL CLEAR)
+// ==========================================
+window.clearAllData = async () => {
+    try {
+        await fetch('/api/reset_stats', { method: 'POST' });
+        document.getElementById('statMatang').textContent = "0";
+        document.getElementById('statMentah').textContent = "0";
+        document.getElementById('statBerbunga').textContent = "0";
+        Toast.fire({ icon: 'info', title: 'Data Deteksi Dihapus' });
+        
+        // Update Console Log
+        if(window.addLogToConsole) window.addLogToConsole("[SYSTEM] Seluruh counter di-reset ke 0.");
+    } catch (err) { console.error("Gagal reset", err); }
+};
+
+window.resetSpecificCounter = async (type) => {
+    const map = { 'matang': 'statMatang', 'mentah': 'statMentah', 'bunga': 'statBerbunga' };
+    const el = document.getElementById(map[type]);
+    if (el) {
+        el.textContent = "0";
+        el.style.color = "#E11D48";
+        setTimeout(() => { el.style.color = "#0F172A"; }, 500);
+        
+        if(window.addLogToConsole) window.addLogToConsole(`[SYSTEM] Counter ${type.toUpperCase()} di-reset.`);
+    }
+};
+
+// ==========================================
 // UTILITY: FUNGSI UPDATE ANIMASI SINYAL
 // ==========================================
-// --- FUNGSI UPDATE ANIMASI SINYAL & TEKS ---
-        function updateSignalBars(rssi) {
-            const bars = document.querySelectorAll('#signalBars .bar');
-            const rssiText = document.getElementById('rssiText');
-            const dashStatusText = document.getElementById('dashStatusText');
-            
-            if (!bars.length) return;
+function updateSignalBars(rssi) {
+    const bars = document.querySelectorAll('#signalBars .bar');
+    const rssiText = document.getElementById('rssiText');
+    const dashStatusText = document.getElementById('dashStatusText');
+    
+    if (!bars.length) return;
+    bars.forEach(bar => bar.style.background = '#334155');
 
-            // Reset warna semua bar jadi abu-abu
-            bars.forEach(bar => bar.style.background = '#334155');
+    if (rssi === null) {
+        if(dashStatusText) { dashStatusText.textContent = 'Kamera Lokal'; dashStatusText.style.color = '#0EA5E9'; }
+        if(rssiText) rssiText.style.display = 'none';
+        return;
+    }
 
-            // 1. JIKA KAMERA LOKAL / WEBCAM (Nilai RSSI kosong / null)
-            if (rssi === null) {
-                if(dashStatusText) {
-                    dashStatusText.textContent = 'Kamera Lokal (USB/LAN)';
-                    dashStatusText.style.color = '#0EA5E9'; // Warna Biru Cyan
-                }
-                if(rssiText) rssiText.style.display = 'none';
-                return;
-            }
+    if (rssi === -100) {
+        if(dashStatusText) { dashStatusText.textContent = 'Sinyal Terputus'; dashStatusText.style.color = '#E11D48'; }
+        if(rssiText) rssiText.style.display = 'none';
+        return;
+    }
 
-            // 2. JIKA ESP32 TAPI OFFLINE / PUTUS KONEKSI (-100)
-            if (rssi === -100) {
-                if(dashStatusText) {
-                    dashStatusText.textContent = 'Sinyal ESP32 Terputus';
-                    dashStatusText.style.color = '#E11D48'; // Warna Merah
-                }
-                if(rssiText) rssiText.style.display = 'none';
-                return;
-            }
+    if(rssiText) { rssiText.style.display = 'inline-block'; rssiText.textContent = `${rssi} dBm`; }
 
-            // Tampilkan angka dBm jika ada sinyal
-            if(rssiText) {
-                rssiText.style.display = 'inline-block';
-                rssiText.textContent = `${rssi} dBm`;
-            }
-
-            // 3. LOGIKA DINAMIS TEKS DAN WARNA BERDASARKAN KEKUATAN SINYAL
-            if (rssi >= -60) {
-                // 4 Batang Hijau (Kuat: 0 sampai -60 dBm)
-                bars.forEach(bar => bar.style.background = '#10B981');
-                if(dashStatusText) {
-                    dashStatusText.textContent = 'Sinyal Kuat';
-                    dashStatusText.style.color = '#10B981';
-                }
-            } else if (rssi >= -70) {
-                // 3 Batang Kuning (Sedang: -61 sampai -70 dBm)
-                bars[0].style.background = '#F59E0B';
-                bars[1].style.background = '#F59E0B';
-                bars[2].style.background = '#F59E0B';
-                if(dashStatusText) {
-                    dashStatusText.textContent = 'Sinyal Sedang';
-                    dashStatusText.style.color = '#F59E0B';
-                }
-            } else if (rssi >= -80) {
-                // 2 Batang Oranye (Lemah: -71 sampai -80 dBm)
-                bars[0].style.background = '#F97316';
-                bars[1].style.background = '#F97316';
-                if(dashStatusText) {
-                    dashStatusText.textContent = 'Sinyal Lemah';
-                    dashStatusText.style.color = '#F97316';
-                }
-            } else {
-                // 1 Batang Merah (Buruk/Sekarat: di bawah -80 dBm)
-                bars[0].style.background = '#E11D48';
-                if(dashStatusText) {
-                    dashStatusText.textContent = 'Sinyal Buruk';
-                    dashStatusText.style.color = '#E11D48';
-                }
-            }
-        }
+    if (rssi >= -60) {
+        bars.forEach(bar => bar.style.background = '#10B981');
+        if(dashStatusText) { dashStatusText.textContent = 'Sinyal Kuat'; dashStatusText.style.color = '#10B981'; }
+    } else if (rssi >= -70) {
+        bars[0].style.background = '#F59E0B'; bars[1].style.background = '#F59E0B'; bars[2].style.background = '#F59E0B';
+        if(dashStatusText) { dashStatusText.textContent = 'Sinyal Sedang'; dashStatusText.style.color = '#F59E0B'; }
+    } else if (rssi >= -80) {
+        bars[0].style.background = '#F97316'; bars[1].style.background = '#F97316';
+        if(dashStatusText) { dashStatusText.textContent = 'Sinyal Lemah'; dashStatusText.style.color = '#F97316'; }
+    } else {
+        bars[0].style.background = '#E11D48';
+        if(dashStatusText) { dashStatusText.textContent = 'Sinyal Buruk'; dashStatusText.style.color = '#E11D48'; }
+    }
+}
 
 // ==========================================
-// 1. INISIALISASI STREAM KAMERA (MODAL & KONEKSI)
+// 1. INISIALISASI STREAM KAMERA 
 // ==========================================
 export function initCameraStream() {
     const btnBukaModalIP = document.getElementById('btnBukaModalIP');
@@ -92,190 +85,175 @@ export function initCameraStream() {
     if (btnBukaModalIP) btnBukaModalIP.addEventListener('click', () => modalIP.classList.add('active'));
     if (btnTutupModalIP) btnTutupModalIP.addEventListener('click', () => modalIP.classList.remove('active'));
     
-    // --- LOGIKA AUTO SCAN IP ESP32 ---
     const btnAutoScan = document.getElementById('btnAutoScan');
     if (btnAutoScan) {
         btnAutoScan.addEventListener('click', async () => {
             const originalHtml = btnAutoScan.innerHTML;
-            btnAutoScan.innerHTML = `<span style="font-size: 12px;">Mencari...</span>`;
+            btnAutoScan.innerHTML = `Mencari...`;
             btnAutoScan.disabled = true;
-            btnAutoScan.style.opacity = '0.7';
-
+            if(window.addLogToConsole) window.addLogToConsole("[NETWORK] Scanning IP lokal...");
+            
             try {
                 const res = await fetch('/api/scan_network');
                 const data = await res.json();
-                
                 if (data.status === 'success') {
                     ipInput.value = data.ip;
                     Toast.fire({ icon: 'success', title: 'ESP32 Ditemukan!' });
+                    if(window.addLogToConsole) window.addLogToConsole(`[NETWORK] ESP32 terdeteksi di ${data.ip}`);
                 } else {
-                    Swal.fire({ icon: 'warning', title: 'Tidak Ditemukan', text: data.message, confirmButtonColor: '#E11D48' });
+                    Swal.fire({ icon: 'warning', title: 'Tidak Ditemukan', text: data.message });
+                    if(window.addLogToConsole) window.addLogToConsole("[NETWORK] Gagal menemukan ESP32.");
                 }
-            } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Error Scan', text: 'Gagal memindai jaringan lokal.', confirmButtonColor: '#E11D48' });
-            } finally {
-                btnAutoScan.innerHTML = originalHtml;
-                btnAutoScan.disabled = false;
-                btnAutoScan.style.opacity = '1';
-            }
+            } catch (err) { Swal.fire({ icon: 'error', title: 'Error Scan', text: 'Gagal scan jaringan.' }); } 
+            finally { btnAutoScan.innerHTML = originalHtml; btnAutoScan.disabled = false; }
         });
     }
 
-    // --- LOGIKA HUBUNGKAN STREAM (WEBCAM / ESP32) ---
     if (btnKonfirmasiMencatat) {
         btnKonfirmasiMencatat.addEventListener('click', async () => {
             let payload = {};
             let displayText = "Lokal";
 
-            // Cek Mode yang dipilih user
             if (window.activeSourceType === 'webcam') {
                 const selectElement = document.getElementById('selectWebcamDevice');
                 const camIndex = selectElement ? selectElement.value : "";
-                
-                if (camIndex === "") {
-                    Swal.fire({ icon: 'info', title: 'Ups!', text: 'Pilih perangkat kamera lokalnya dulu.', confirmButtonColor: '#E11D48' });
-                    return;
-                }
+                if (camIndex === "") return;
                 payload = { type: 'webcam', index: parseInt(camIndex) };
                 displayText = selectElement.options[selectElement.selectedIndex].text; 
             } else {
                 const ip = ipInput ? ipInput.value.trim() : "";
-                
-                if (!ip) {
-                    Swal.fire({ icon: 'info', title: 'IP Kosong', text: 'Masukkan IP ESP32 Anda.', confirmButtonColor: '#E11D48' });
-                    return;
-                }
+                if (!ip) return;
                 payload = { type: 'esp32', ip: ip };
                 displayText = ip;
             }
 
             const originalText = btnKonfirmasiMencatat.textContent;
-            btnKonfirmasiMencatat.textContent = "Menghubungkan...";
+            btnKonfirmasiMencatat.textContent = "Loading...";
             btnKonfirmasiMencatat.disabled = true;
+            
+            if(window.addLogToConsole) window.addLogToConsole(`[STREAM] Menghubungkan ke ${displayText}...`);
 
             try {
-                // Tembak API
-                const response = await fetch('/api/connect_cam', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const response = await fetch('/api/connect_cam', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 const data = await response.json();
 
-                // Kalau Sukses Terkoneksi
                 if (data.status === 'success') {
                     if(modalIP) modalIP.classList.remove('active');
-                    
-                    if (btnBukaModalIP) {
-                        btnBukaModalIP.innerHTML = `Terkoneksi: <span style="font-weight:900; color:white;">${displayText}</span>`;
-                        btnBukaModalIP.style.background = '#475569';
-                    }
-                    
+                    if (btnBukaModalIP) btnBukaModalIP.innerHTML = `Terkoneksi: <b>${displayText}</b>`;
                     if (dashStatusText) dashStatusText.textContent = displayText;
-
                     Toast.fire({ icon: 'success', title: 'Kamera Terhubung' });
                     
+                    if(window.addLogToConsole) window.addLogToConsole(`[STREAM] Berhasil terhubung. Memuat video feed...`);
                     if (liveVideo) liveVideo.src = "/video_feed?t=" + new Date().getTime();
 
-                    // Interval cek FPS, Deteksi, Sinyal & Resolusi (Tiap 1 Detik)
-                    if(fpsInterval) clearInterval(fpsInterval); // Bersihkan interval lama jika ada
+                    if(fpsInterval) clearInterval(fpsInterval);
                     fpsInterval = setInterval(async () => {
                         try {
                             const statsRes = await fetch('/api/stream_stats');
                             if (statsRes.ok) {
                                 const stats = await statsRes.json();
                                 
-                                // Update FPS
-                                if (document.getElementById('fpsText')) 
-                                    document.getElementById('fpsText').textContent = `${stats.fps || 0} FPS`;
-                                
-                                // Update Counter Buah
-                                if (document.getElementById('statMatang') && stats.matang !== undefined) 
-                                    document.getElementById('statMatang').textContent = stats.matang;
-                                if (document.getElementById('statMentah') && stats.mentah !== undefined) 
-                                    document.getElementById('statMentah').textContent = stats.mentah;
-                                if (document.getElementById('statBerbunga') && stats.bunga !== undefined) 
-                                    document.getElementById('statBerbunga').textContent = stats.bunga;
+                                if (document.getElementById('statMatang')) document.getElementById('statMatang').textContent = stats.matang ?? 0;
+                                if (document.getElementById('statMentah')) document.getElementById('statMentah').textContent = stats.mentah ?? 0;
+                                if (document.getElementById('statBerbunga')) document.getElementById('statBerbunga').textContent = stats.bunga ?? 0;
+                                if (document.getElementById('fpsText')) document.getElementById('fpsText').textContent = `${stats.fps || 0} FPS`;
 
-                                // Update Sinyal Telemetry
                                 updateSignalBars(stats.rssi);
 
-                                // Update Label Resolusi
                                 const resLabel = document.getElementById('resText');
                                 if (resLabel) {
-                                    let activeRes = stats.res;
-
-                                    if (activeRes === '---' || !activeRes) {
+                                    let activeRes = stats.resolution; 
+                                    if (!activeRes || activeRes === '---') {
                                         const resSelect = document.getElementById('resSelect');
                                         if (resSelect) activeRes = resSelect.value;
                                     }
+                                    const resMap = { '4': '320x240', '5': '400x296', '6': '640x480', '7': '800x600', '8': '1024x768', '9': '1280x1024', '10': '1600x1200' };
+                                    if (window.activeSourceType === 'webcam') { resLabel.textContent = "Auto (USB)"; } 
+                                    else { resLabel.textContent = resMap[activeRes] || activeRes || '---'; }
+                                }
 
-                                    const resMap = {
-                                        '4': '320x240',   '5': '400x296',   '6': '640x480', 
-                                        '7': '800x600',   '8': '1024x768',  '9': '1280x1024', 
-                                        '10': '1600x1200'
-                                    };
-                                    
-                                    if (window.activeSourceType === 'webcam') {
-                                        resLabel.textContent = "Auto (USB)";
+                                // --- PERBAIKAN LOGIKA SUHU & RAM (SESUAIKAN DENGAN WARNA PUTIH) ---
+                                const hwBadge = document.getElementById('hwDebugBadge');
+                                const hwText = document.getElementById('hwDebugText');
+                                if (hwBadge && hwText) {
+                                    if (window.activeSourceType === 'esp32' && stats.free_ram !== null && stats.temp !== null) {
+                                        // Menampilkan badge jika data tersedia
+                                        hwBadge.style.display = 'flex';
+                                        
+                                        // Mengonversi RAM dari Bytes ke KB
+                                        const ramKB = (stats.free_ram / 1024).toFixed(1);
+                                        
+                                        // Menyatukan format teks Suhu dan RAM
+                                        hwText.textContent = `${stats.temp}°C | ${ramKB} KB`;
+                                        
+                                        // Menerapkan warna putih sebagai standar, dan merah HANYA jika overheat
+                                        hwText.style.color = (stats.temp > 65) ? '#E11D48' : 'white';
                                     } else {
-                                        resLabel.textContent = resMap[activeRes] || activeRes || '---';
+                                        hwBadge.style.display = 'none';
                                     }
                                 }
+                                // --- END PERBAIKAN LOGIKA ---
                             }
                         } catch (e) { }
                     }, 1000);
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Koneksi Gagal', text: data.message, confirmButtonColor: '#E11D48' });
+                    if(window.addLogToConsole) window.addLogToConsole(`[ERROR] Koneksi ditolak: ${data.message}`);
                 }
-            } catch (e) {
-                Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server.', confirmButtonColor: '#E11D48' });
-            } finally {
-                btnKonfirmasiMencatat.textContent = originalText;
-                btnKonfirmasiMencatat.disabled = false;
-            }
+            } catch (e) { 
+                if(window.addLogToConsole) window.addLogToConsole(`[ERROR] Terjadi gangguan jaringan.`);
+            } 
+            finally { btnKonfirmasiMencatat.textContent = originalText; btnKonfirmasiMencatat.disabled = false; }
         });
     }
 }
 
 // ==========================================
-// 2. INISIALISASI KONTROL AI (TOGGLE)
+// 2. INISIALISASI KONTROL AI 
 // ==========================================
 export function initAIControls() {
     const btnToggleAI = document.getElementById('btnToggleAI');
     const aiStatusBadge = document.getElementById('aiStatusBadge');
     const aiStatusText = document.getElementById('aiStatusText');
     let isAIActive = false;
-
     window.isSessionActive = false;
 
-    window.matikanAI = () => {
+    window.matikanAI = async () => {
         isAIActive = false;
-        if (btnToggleAI) {
-            btnToggleAI.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Test Mode AI (Tanpa Record)</span>`;
-            btnToggleAI.style.background = "rgba(15, 23, 42, 0.9)";
+        if (btnToggleAI) { 
+            btnToggleAI.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Test Mode AI</span>`; 
+            btnToggleAI.style.background = "rgba(15, 23, 42, 0.9)"; 
         }
         if (aiStatusBadge) aiStatusBadge.style.background = "rgba(225, 29, 72, 0.9)";
         if (aiStatusText) aiStatusText.textContent = "AI STANDBY (OFF)";
-        fetch('/api/toggle_ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: false }) });
+        
+        await fetch('/api/toggle_ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: false }) });
+        
+        await fetch('/api/reset_stats', { method: 'POST' });
+        document.getElementById('statMatang').textContent = "0";
+        document.getElementById('statMentah').textContent = "0";
+        document.getElementById('statBerbunga').textContent = "0";
+        
+        if(window.addLogToConsole) window.addLogToConsole("[AI] YOLOv5 Engine dimatikan. Data dibersihkan.");
     };
 
-    window.nyalakanAI = () => {
+    window.nyalakanAI = async () => {
         isAIActive = true;
-        if (btnToggleAI) {
-            btnToggleAI.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> <span>Jeda Test AI</span>`;
-            btnToggleAI.style.background = "#10B981";
+        if (btnToggleAI) { 
+            btnToggleAI.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> <span>Jeda Test AI</span>`; 
+            btnToggleAI.style.background = "#10B981"; 
         }
         if (aiStatusBadge) aiStatusBadge.style.background = "rgba(16, 185, 129, 0.9)";
-        if (aiStatusText) aiStatusText.textContent = "AI DETECTING";
-        fetch('/api/toggle_ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: true }) });
+        if (aiStatusText) aiStatusText.textContent = "DETECTING";
+        await fetch('/api/toggle_ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: true }) });
+        
+        if(window.addLogToConsole) window.addLogToConsole("[AI] YOLOv5 Engine diaktifkan. Mencari objek...");
     };
 
     if (btnToggleAI) {
         btnToggleAI.addEventListener('click', () => {
-            if (window.isSessionActive) {
-                Swal.fire({ icon: 'warning', title: 'Sesi Sedang Berjalan', text: 'Tidak bisa mematikan AI saat sesi penerbangan aktif!', confirmButtonColor: '#E11D48' });
-                return;
+            if (window.isSessionActive) { 
+                Swal.fire({ icon: 'warning', title: 'Sesi Aktif', text: 'AI tidak bisa dimatikan manual saat Sesi Patroli berjalan!' }); 
+                return; 
             }
             if (isAIActive) window.matikanAI(); else window.nyalakanAI();
         });
@@ -283,25 +261,19 @@ export function initAIControls() {
 }
 
 // ==========================================
-// 3. INISIALISASI SESI PATROLI & STOPWATCH
+// 3. INISIALISASI SESI PATROLI (DENGAN CONFIRMATION MODAL)
 // ==========================================
 export function initPatrolSession() {
     const btnSesiPatroli = document.getElementById('btnSesiPatroli');
     const swDisplay = document.getElementById('patrolStopwatch');
-    
-    // Variabel Global untuk Stopwatch
-    let patrolTimer;
+    let patrolTimer; 
     let patrolSeconds = 0;
 
     function startStopwatch() {
         if (!swDisplay) return;
-        
-        patrolSeconds = 0;
-        swDisplay.textContent = "00:00:00";
-        swDisplay.style.color = "#10B981"; // Berubah hijau nyala pas jalan
-        
-        if (patrolTimer) clearInterval(patrolTimer); // Bersihin sisa timer kalau ada
-
+        patrolSeconds = 0; 
+        swDisplay.style.color = "#10B981"; // Hijau saat jalan
+        if (patrolTimer) clearInterval(patrolTimer);
         patrolTimer = setInterval(() => {
             patrolSeconds++;
             const hrs = String(Math.floor(patrolSeconds / 3600)).padStart(2, '0');
@@ -313,72 +285,91 @@ export function initPatrolSession() {
 
     function stopStopwatch() {
         clearInterval(patrolTimer);
-        if (swDisplay) swDisplay.style.color = "#94A3B8"; // Kembali warna abu-abu
+        if (swDisplay) swDisplay.style.color = "#94A3B8"; // Kembali abu-abu saat berhenti
     }
 
     if (btnSesiPatroli) {
         btnSesiPatroli.addEventListener('click', () => {
             if (!window.isSessionActive) {
-                let timerInterval;
+                // UI BARU: Modal Konfirmasi Premium sebelum memulai sesi
                 Swal.fire({
-                    title: 'Siap Terbang!',
-                    html: 'Merekam data kebun dalam <b></b> detik...',
-                    timer: 3000,
-                    timerProgressBar: true,
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                        const b = Swal.getHtmlContainer().querySelector('b');
-                        b.style.fontSize = '30px';
-                        b.style.color = '#E11D48';
-                        timerInterval = setInterval(() => {
-                            b.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
-                        }, 100);
-                    },
-                    willClose: () => { clearInterval(timerInterval); }
+                    title: 'Mulai Sesi Patroli?',
+                    html: `
+                        <div style="font-size: 14px; color: #64748B; margin-bottom: 20px;">
+                            Sistem akan mulai merekam perhitungan objek dan menyimpannya ke dalam Database Riwayat secara otomatis.
+                        </div>
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; text-align: left; display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="color: #0EA5E9; margin-top: 2px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            </div>
+                            <div style="font-size: 12px; color: #475569; line-height: 1.5;">
+                                <strong>Pro Tip:</strong> Pastikan Anda telah mengatur <i>Confidence Threshold</i> dan <i>Resolusi</i> dengan benar di menu Settings sebelum memulai, agar kalkulasi panen akurat.
+                            </div>
+                        </div>
+                    `,
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#E11D48', // Merah khas LacakTani
+                    cancelButtonColor: '#94A3B8',
+                    confirmButtonText: 'Ya, Mulai Terbang',
+                    cancelButtonText: 'Batal',
+                    customClass: {
+                        popup: 'swal-premium-popup',
+                        title: 'swal-premium-title'
+                    }
                 }).then((result) => {
-                    if (result.dismiss === Swal.DismissReason.timer) {
+                    // Hanya eksekusi jika user menekan tombol "Ya, Mulai Terbang"
+                    if (result.isConfirmed) {
                         window.isSessionActive = true;
-                        btnSesiPatroli.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"></rect></svg> Akhiri & Simpan Laporan`;
-                        btnSesiPatroli.classList.add('btn-record-active');
-
-                        // Nyalakan AI secara otomatis
+                        
+                        // Ubah tampilan tombol menjadi state "Berjalan"
+                        btnSesiPatroli.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg> Akhiri & Simpan Laporan`;
+                        btnSesiPatroli.style.background = "#E11D48";
+                        btnSesiPatroli.style.boxShadow = "0 10px 25px rgba(225, 29, 72, 0.4)";
+                        
+                        // Nyalakan AI dan Timer
                         if (typeof window.nyalakanAI === 'function') window.nyalakanAI();
-                        
-                        Toast.fire({ icon: 'success', title: 'Sesi Patroli Dimulai!' });
-                        
-                        // JALANKAN STOPWATCH!
                         startStopwatch();
-
+                        
+                        // Tembak API
                         fetch('/api/start_session', { method: 'POST' });
+                        
+                        // Beri notifikasi kecil (Toast)
+                        Toast.fire({ icon: 'success', title: 'Sesi Patroli Dimulai!' });
+                        if(window.addLogToConsole) window.addLogToConsole("[PATROLI] Sesi inspeksi kebun di-mulai.");
                     }
                 });
 
             } else {
+                // Konfirmasi saat INGIN MENGHENTIKAN sesi (Opsional, tapi bagus untuk UX)
                 Swal.fire({
-                    title: 'Akhiri Patroli?',
-                    text: "Data panen akan dianalisis dan disimpan ke riwayat.",
+                    title: 'Akhiri Sesi?',
+                    text: "Data kalkulasi akan disimpan ke menu Riwayat dan AI akan dihentikan sementara.",
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonColor: '#10B981',
-                    cancelButtonColor: '#475569',
+                    confirmButtonColor: '#10B981', // Hijau untuk save
+                    cancelButtonColor: '#94A3B8',
                     confirmButtonText: 'Ya, Simpan Laporan',
-                    cancelButtonText: 'Teruskan Terbang'
+                    cancelButtonText: 'Lanjut Terbang'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.isSessionActive = false;
+                        
+                        // Kembalikan tombol ke state awal
                         btnSesiPatroli.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Mulai Sesi Patroli`;
-                        btnSesiPatroli.classList.remove('btn-record-active');
-
-                        // MATIKAN STOPWATCH!
+                        btnSesiPatroli.style.background = "var(--primary)";
+                        btnSesiPatroli.style.boxShadow = "0 10px 25px rgba(225, 29, 72, 0.3)"; // Shadow bawaan
+                        
                         stopStopwatch();
 
+                        // Hentikan AI & Simpan Sesi
                         fetch('/api/stop_session', { method: 'POST' })
                             .then(res => res.json())
-                            .then(data => {
+                            .then(async data => {
                                 if (typeof window.matikanAI === 'function') window.matikanAI();
                                 if (data.status === 'success') {
-                                    Swal.fire({ icon: 'success', title: 'Laporan Tersimpan!', text: 'Estimasi panen berhasil dikalkulasi & masuk database.', confirmButtonColor: '#10B981' });
+                                    Swal.fire({ icon: 'success', title: 'Laporan Tersimpan!', text: 'Hasil deteksi masuk ke database riwayat.', confirmButtonColor: '#10B981' });
+                                    if(window.addLogToConsole) window.addLogToConsole("[PATROLI] Sesi dihentikan. Data disimpan ke Database.");
                                 }
                             });
                     }
@@ -392,7 +383,6 @@ export function initPatrolSession() {
 // 4. INISIALISASI HARDWARE (SLIDER ESP32)
 // ==========================================
 export function initHardwareSliders() {
-    // A. Logika Pengaturan ESP32 (Slider & Dropdown Biasa)
     const camControls = [
         { id: 'camBrightness', varName: 'brightness', valId: 'valBrightness' },
         { id: 'camContrast', varName: 'contrast', valId: 'valContrast' },
@@ -403,93 +393,45 @@ export function initHardwareSliders() {
     camControls.forEach(ctrl => {
         const slider = document.getElementById(ctrl.id);
         const valDisplay = document.getElementById(ctrl.valId);
-
         if (slider && valDisplay) {
-            slider.addEventListener('input', (e) => {
-                const v = parseInt(e.target.value);
-                valDisplay.textContent = v > 0 ? `+${v}` : v;
-            });
-            slider.addEventListener('change', async (e) => {
-                try {
-                    await fetch('/api/cam_control', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ var: ctrl.varName, val: e.target.value })
-                    });
-                } catch (err) { console.error(`Gagal merubah ${ctrl.varName}`); }
+            slider.addEventListener('input', (e) => { valDisplay.textContent = e.target.value; });
+            slider.addEventListener('change', async (e) => { 
+                await fetch('/api/cam_control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ var: ctrl.varName, val: e.target.value }) }); 
+                if(window.addLogToConsole) window.addLogToConsole(`[HARDWARE] Parameter ${ctrl.varName} diset ke ${e.target.value}.`);
             });
         }
     });
 
     const aiSensorControls = [
-        { id: 'camVflip', varName: 'vflip' },
-        { id: 'camHmirror', varName: 'hmirror' },
-        { id: 'camAwb', varName: 'awb' },
-        { id: 'camAec', varName: 'aec' },
-        { id: 'camLenc', varName: 'lenc' }
+        { id: 'camVflip', varName: 'vflip' }, { id: 'camHmirror', varName: 'hmirror' },
+        { id: 'camAwb', varName: 'awb' }, { id: 'camAec', varName: 'aec' }, { id: 'camLenc', varName: 'lenc' }
     ];
-
     aiSensorControls.forEach(ctrl => {
         const selectEl = document.getElementById(ctrl.id);
         if (selectEl) {
             selectEl.addEventListener('change', async (e) => {
-                document.body.style.cursor = 'wait';
-                try {
-                    await fetch('/api/cam_control', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ var: ctrl.varName, val: e.target.value })
-                    });
-                    Toast.fire({ icon: 'success', title: 'Setting tersimpan' });
-                } catch (err) { console.error(`Gagal merubah ${ctrl.varName}`); }
-                finally { document.body.style.cursor = 'default'; }
+                await fetch('/api/cam_control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ var: ctrl.varName, val: e.target.value }) });
+                if(window.addLogToConsole) window.addLogToConsole(`[HARDWARE] Pengaturan lensa ${ctrl.varName} diubah.`);
             });
         }
     });
 
-    // B. LOGIKA GANTI RESOLUSI ESP32
     const resSelect = document.getElementById('resSelect');
     if (resSelect) {
         resSelect.addEventListener('change', async (e) => {
-            if (window.activeSourceType === 'webcam') {
-                Swal.fire({ icon: 'info', title: 'Hanya untuk ESP32', text: 'Pengaturan resolusi ini khusus untuk stream dari ESP32-CAM.', confirmButtonColor: '#10B981' });
-                return;
-            }
-
-            document.body.style.cursor = 'wait';
-            try {
-                const response = await fetch('/api/set_resolution', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ val: e.target.value })
-                });
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    Toast.fire({ icon: 'success', title: 'Resolusi Kamera Diubah!' });
-                } else {
-                    Swal.fire('Gagal', data.message || 'Gagal mengubah resolusi', 'error');
-                }
-            } catch (err) { console.error("Gagal ganti resolusi:", err); } 
-            finally { document.body.style.cursor = 'default'; }
+            if (window.activeSourceType === 'webcam') return;
+            await fetch('/api/set_resolution', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ val: e.target.value }) });
+            if(window.addLogToConsole) window.addLogToConsole(`[HARDWARE] Resolusi kamera diganti.`);
         });
     }
 
-    // C. LOGIKA SLIDER AI CONFIDENCE THRESHOLD
     const aiConfSlider = document.getElementById('aiConfidence');
     const valConfDisplay = document.getElementById('valConf');
-
     if (aiConfSlider && valConfDisplay) {
         aiConfSlider.addEventListener('input', (e) => { valConfDisplay.textContent = e.target.value; });
-        aiConfSlider.addEventListener('change', async (e) => {
-            try {
-                await fetch('/api/cam_control', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ var: 'ai_conf', val: e.target.value })
-                });
-                Toast.fire({ icon: 'success', title: `Threshold AI diubah: ${e.target.value}` });
-            } catch (err) { console.error("Gagal update confidence:", err); }
+        aiConfSlider.addEventListener('change', async (e) => { 
+            await fetch('/api/cam_control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ var: 'ai_conf', val: e.target.value }) }); 
+            if(window.addLogToConsole) window.addLogToConsole(`[AI] Confidence Threshold diatur ke ${e.target.value}.`);
         });
     }
 }
@@ -506,82 +448,51 @@ export function initDragAndDropModel() {
         try {
             const res = await fetch('/api/models');
             const data = await res.json();
-            
             if (data.status === 'success') {
                 sortableList.innerHTML = ''; 
-                if (data.models.length === 0) {
-                    sortableList.innerHTML = `<div style="padding:10px; color:gray; font-size:12px;">Belum ada model .pt</div>`;
-                    return;
-                }
-
                 data.models.forEach((modelName, index) => {
                     const isActive = index === 0;
-                    const activeClass = isActive ? 'active-model' : '';
-                    const badgeHtml = isActive ? '<span class="badge-active-model">Active</span>' : '';
-                    
-                    const html = `
-                        <div class="sortable-item ${activeClass}" draggable="true" data-model="${modelName}">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="drag-handle">⋮⋮</span>
-                                <span class="model-name">${modelName}</span>
-                            </div>
-                            ${badgeHtml}
-                        </div>
-                    `;
+                    const html = `<div class="sortable-item ${isActive ? 'active-model' : ''}" draggable="true" data-model="${modelName}"><span class="model-name">${modelName}</span>${isActive ? '<span class="badge-active-model">Active</span>' : ''}</div>`;
                     sortableList.insertAdjacentHTML('beforeend', html);
                 });
                 attachDragEvents();
             }
-        } catch (err) { console.error("Gagal load daftar model:", err); }
+        } catch (err) { }
     };
 
     if (uploadInput) {
         uploadInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (!file) return;
-
-            if (!file.name.endsWith('.pt')) {
-                Swal.fire('Error', 'File harus berformat .pt (PyTorch Weights)', 'error');
-                return;
-            }
-
+            if (!file || !file.name.endsWith('.pt')) return;
             const formData = new FormData();
             formData.append('file', file);
             Toast.fire({ icon: 'info', title: 'Mengunggah model...' });
-
+            if(window.addLogToConsole) window.addLogToConsole(`[SYSTEM] Mengunggah model ${file.name}...`);
             try {
                 const res = await fetch('/api/upload_model', { method: 'POST', body: formData });
                 const data = await res.json();
-                
-                if (data.status === 'success') {
-                    Toast.fire({ icon: 'success', title: data.message });
+                if (data.status === 'success') { 
+                    Toast.fire({ icon: 'success', title: data.message }); 
+                    if(window.addLogToConsole) window.addLogToConsole(`[SYSTEM] Model ${file.name} berhasil diunggah.`);
                     fetchAndRenderModels(); 
-                } else {
-                    Swal.fire('Error Upload', data.message, 'error');
                 }
-            } catch (err) { Swal.fire('Error', 'Terjadi kesalahan jaringan', 'error'); }
+            } catch (err) { }
         });
     }
 
     const attachDragEvents = () => {
         const items = sortableList.querySelectorAll('.sortable-item');
-        
         items.forEach(item => {
             item.addEventListener('dragstart', () => setTimeout(() => item.classList.add('dragging'), 0));
-            item.addEventListener('dragend', () => {
-                item.classList.remove('dragging');
-                updateActiveModel(sortableList); 
-            });
+            item.addEventListener('dragend', () => { item.classList.remove('dragging'); updateActiveModel(sortableList); });
         });
 
         sortableList.addEventListener('dragover', (e) => {
             e.preventDefault();
             const draggingItem = sortableList.querySelector('.dragging');
             if (!draggingItem) return;
-            
             let siblings = [...sortableList.querySelectorAll('.sortable-item:not(.dragging)')];
             let nextSibling = siblings.find(sibling => e.clientY <= sibling.getBoundingClientRect().top + sibling.offsetHeight / 2);
-
             if (!nextSibling) sortableList.appendChild(draggingItem);
             else sortableList.insertBefore(draggingItem, nextSibling);
         });
@@ -603,19 +514,14 @@ export function initDragAndDropModel() {
 
         try {
             Toast.fire({ icon: 'info', title: `Memuat model ${topModelName}...` });
-            const res = await fetch('/api/set_active_model', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model_name: topModelName })
-            });
+            if(window.addLogToConsole) window.addLogToConsole(`[AI] Menyiapkan model otak ${topModelName}...`);
+            const res = await fetch('/api/set_active_model', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model_name: topModelName }) });
             const data = await res.json();
-            
-            if (data.status === 'success') {
-                Toast.fire({ icon: 'success', title: `Engine AI beralih ke: ${topModelName}` });
-            } else {
-                Swal.fire('Error Engine AI', data.message, 'error');
-            }
-        } catch (err) { console.error("Gagal ganti model:", err); }
+            if (data.status === 'success') { 
+                Toast.fire({ icon: 'success', title: `Engine AI beralih ke: ${topModelName}` }); 
+                if(window.addLogToConsole) window.addLogToConsole(`[AI] Engine berhasil beralih ke ${topModelName}.`);
+            } 
+        } catch (err) { }
     };
 
     fetchAndRenderModels();

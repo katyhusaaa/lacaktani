@@ -197,30 +197,77 @@ document.addEventListener('DOMContentLoaded', function() {
         'camAwb', 'camAec', 'camLenc'
     ];
 
-    window.saveCurrentAsPreset = function() {
-        const name = prompt("Masukan nama preset (Misal: Kebun Pagi Terik):");
-        if (!name) return;
-        
-        const currentSettings = {};
-        allSettingIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                // Konversi semua ke string saat disimpan biar seragam
-                currentSettings[id] = String(el.value); 
+window.saveCurrentAsPreset = async () => {
+    // Gunakan SweetAlert2 untuk form input yang elegan
+    const { value: presetName } = await Swal.fire({
+        title: 'Simpan Preset',
+        text: 'Masukkan nama untuk konfigurasi lensa saat ini:',
+        input: 'text',
+        inputPlaceholder: 'Misal: Kebun Pagi Terik',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#E11D48', // Warna merah primary LacakTani
+        cancelButtonColor: '#94A3B8',  // Warna abu-abu tombol cancel
+        confirmButtonText: 'Simpan',
+        cancelButtonText: 'Batal',
+        background: '#FFFFFF',
+        customClass: {
+            title: 'swal-title-custom',
+            input: 'saas-input' // Minjam class CSS lu biar inputnya seragam
+        },
+        inputValidator: (value) => {
+            if (!value) {
+                return 'Nama preset tidak boleh kosong!';
             }
-        });
+        }
+    });
 
-        let userPresets = JSON.parse(localStorage.getItem('userPresets') || '{}');
-        userPresets[name] = currentSettings;
-        localStorage.setItem('userPresets', JSON.stringify(userPresets));
-        
-        renderUserPresets();
-        Swal.fire({
-            icon: 'success', title: 'Tersimpan!', 
-            text: `Preset '${name}' berhasil disimpan. (Klik Kanan untuk hapus)`, 
-            timer: 2500, showConfirmButton: false
-        });
-    };
+    // Jika user menekan tombol Simpan dan namanya ada
+    if (presetName) {
+        try {
+            // Animasi loading
+            Swal.fire({
+                title: 'Menyimpan...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Tembak API untuk simpan preset (Pastikan endpoint lu ini /api/save_preset atau sesuaikan)
+            const response = await fetch('/api/save_preset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: presetName })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: `Preset "${presetName}" tersimpan.`,
+                    confirmButtonColor: '#10B981' // Hijau sukses
+                });
+                
+                // Tambahkan log ke console jika fungsi addLogToConsole ada
+                if (window.addLogToConsole) {
+                    window.addLogToConsole(`[SYSTEM] Preset lensa "${presetName}" berhasil disimpan.`);
+                }
+                
+                // Refresh list preset jika ada fungsinya
+                if (typeof loadUserPresets === 'function') loadUserPresets();
+                
+            } else {
+                Swal.fire('Gagal', data.message || 'Terjadi kesalahan saat menyimpan.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+        }
+    }
+};
 
     window.applyPreset = function(mode) {
         let vals = {};

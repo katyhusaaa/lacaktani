@@ -26,7 +26,7 @@ body {
     color: var(--text-dark);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased; 
-    overflow-x: hidden; /* Mencegah layar bisa digeser ke kanan-kiri di HP */
+    overflow-x: hidden; /* Mencegah layar geser kanan-kiri di HP */
 }
 
 /* =========================================================
@@ -55,23 +55,24 @@ body {
     z-index: 50; 
 }
 
-.dashboard-split { 
-    display: flex; 
+/* Layout Dashboard */
+.gcs-layout { 
+    display: grid; 
+    grid-template-columns: 2.2fr 1fr; 
     gap: 24px; 
-    align-items: stretch; 
+    align-items: start; 
+    margin-top: 16px; 
 }
-.stage-left { 
-    flex: 6; 
-    display: flex; 
-    flex-direction: column; 
-    min-width: 0; /* Mencegah container nabrak di layar kecil */
-}
-.stage-right { 
-    flex: 4; 
+.visual-stack { 
     display: flex; 
     flex-direction: column; 
     gap: 20px; 
-    padding-top: 52px; 
+    min-width: 0; 
+}
+.stage-right { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
 }
 
 .card { 
@@ -94,31 +95,14 @@ body {
     cursor: pointer; 
     transition: 0.2s; 
 }
-.btn-outline:hover { 
-    border-color: var(--text-muted); 
-    background: #F1F5F9; 
-}
-.icon-svg { 
-    width: 18px; 
-    height: 18px; 
-    stroke: currentColor; 
-    stroke-width: 2; 
-    fill: none; 
-    stroke-linecap: round; 
-    stroke-linejoin: round; 
-}
+.btn-outline:hover { border-color: var(--text-muted); background: #F1F5F9; }
+
 .status-badge { 
     display: inline-flex; 
     align-items: center; 
     gap: 8px; 
     font-size: 13px; 
     font-weight: 700; 
-}
-.dot { 
-    width: 8px; 
-    height: 8px; 
-    background: var(--primary); 
-    border-radius: 50%; 
 }
 
 /* Slider Custom */
@@ -149,216 +133,34 @@ body {
 /* =========================================================
    3. DRAWER (PENGATURAN SAMPING)
    ========================================================= */
-.drawer-overlay { 
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100vw; height: 100vh; 
-    background: rgba(15, 23, 42, 0.4); 
-    backdrop-filter: blur(4px); 
-    z-index: 99; 
-    opacity: 0; 
-    visibility: hidden; 
-    transition: 0.3s ease; 
-}
-.drawer-overlay.active { 
-    opacity: 1; 
-    visibility: visible; 
-}
-.side-drawer { 
-    position: fixed; 
-    top: 0; 
-    right: -100%; 
-    width: 100%; 
-    max-width: 400px; 
-    height: 100vh; 
-    background: var(--bg-card); 
-    box-shadow: -10px 0 25px rgba(0,0,0,0.1); 
-    z-index: 100; 
-    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-    display: flex; 
-    flex-direction: column; 
-    border-left: 1px solid var(--border-color); 
-}
+.drawer-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 99; opacity: 0; visibility: hidden; transition: 0.3s ease; }
+.drawer-overlay.active { opacity: 1; visibility: visible; }
+.side-drawer { position: fixed; top: 0; right: -100%; width: 100%; max-width: 400px; height: 100vh; background: var(--bg-card); box-shadow: -10px 0 25px rgba(0,0,0,0.1); z-index: 100; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; border-left: 1px solid var(--border-color); }
 .side-drawer.active { right: 0; }
 .drawer-header { display: flex; justify-content: space-between; align-items: center; padding: 24px; border-bottom: 1px solid var(--border-color); }
 .drawer-content { padding: 24px; overflow-y: auto; flex: 1; }
 
 /* =========================================================
-   4. LANDING PAGE (MARKETING SAAS)
+   4. MODAL GLOBAL & INPUT
    ========================================================= */
-.landing-wrap { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
-.saas-navbar { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; margin-bottom: 40px; }
-.logo { font-size: 24px; font-weight: 900; letter-spacing: -0.02em; color: var(--text-dark); }
-.text-primary { color: var(--primary); }
-
-.system-status { display: flex; align-items: center; gap: 16px; background: var(--bg-card); padding: 10px 24px; border-radius: 100px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); font-size: 13px; font-weight: 700; }
-.status-indicator { display: flex; align-items: center; gap: 8px; color: var(--text-dark); }
-.pulse-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; animation: pulse 2s infinite; }
-.separator { color: #CBD5E1; }
-.time-display { color: var(--text-muted); font-variant-numeric: tabular-nums; }
-
-.saas-hero { text-align: center; padding: 60px 0 80px; display: flex; flex-direction: column; align-items: center; position: relative; animation: fadeIn 0.8s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.saas-hero::before { content: ''; position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 400px; background: radial-gradient(ellipse at center, rgba(225,29,72,0.08) 0%, rgba(248,250,252,0) 70%); z-index: -1; pointer-events: none; }
-
-.hero-pill { background: white; border: 1px solid var(--border-color); padding: 6px 16px 6px 6px; border-radius: 100px; font-size: 13px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 12px; margin-bottom: 32px; box-shadow: var(--shadow-sm); }
-.pill-badge { background: var(--primary); color: white; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
-.hero-title { font-size: 64px; font-weight: 900; line-height: 1.1; letter-spacing: -0.04em; color: var(--text-dark); margin-bottom: 24px; }
-.text-gradient { background: linear-gradient(135deg, #E11D48 0%, #F59E0B 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-desc { font-size: 18px; color: var(--text-muted); max-width: 650px; line-height: 1.6; margin-bottom: 40px; }
-
-.hero-actions { display: flex; gap: 16px; margin-bottom: 80px; }
-.btn-saas-primary { background: var(--text-dark); color: white; border: none; padding: 16px 32px; border-radius: 100px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.3); }
-.btn-saas-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 25px -5px rgba(15, 23, 42, 0.4); background: #000000; }
-
-.hero-feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; }
-.hf-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 24px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; box-shadow: var(--shadow-md); transition: 0.3s; }
-.hf-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: #CBD5E1; }
-.hf-icon { width: 48px; height: 48px; background: #F8FAFC; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); }
-.hf-card span { font-size: 14px; font-weight: 800; color: var(--text-dark); }
-
-.saas-workflow { padding: 80px 0; border-top: 1px solid var(--border-color); }
-.section-header { text-align: center; margin-bottom: 60px; }
-.section-header h2 { font-size: 36px; font-weight: 900; margin-bottom: 16px; letter-spacing: -0.02em;}
-.section-header p { font-size: 16px; color: var(--text-muted); max-width: 500px; margin: 0 auto; }
-
-.workflow-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
-.wf-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 32px; border-radius: 24px; box-shadow: var(--shadow-sm); transition: 0.3s; position: relative; }
-.wf-card:hover { box-shadow: var(--shadow-lg); }
-.wf-step { font-size: 14px; font-weight: 900; color: var(--text-muted); background: #F8FAFC; padding: 8px 16px; border-radius: 100px; display: inline-block; margin-bottom: 24px; border: 1px solid var(--border-color); }
-.wf-card h4 { font-size: 18px; font-weight: 800; margin-bottom: 12px; }
-.wf-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-.highlight-card { border: 2px solid var(--primary); box-shadow: 0 20px 40px -10px rgba(225, 29, 72, 0.15); }
-.highlight-step { background: var(--primary); color: white; border: none; }
-
-.saas-team { padding: 80px 0 40px; }
-.team-container { background: #0F172A; border-radius: 40px; padding: 80px 40px 40px; text-align: center; color: white; }
-.team-container h2 { font-size: 36px; font-weight: 900; margin-bottom: 16px; }
-.team-sub { color: #94A3B8; margin-bottom: 60px; max-width: 500px; margin-left: auto; margin-right: auto;}
-.team-grid { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; margin-bottom: 60px; }
-.team-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 24px; width: 100%; max-width: 320px; backdrop-filter: blur(10px); transition: 0.3s; }
-.team-card:hover { transform: translateY(-8px); background: rgba(255,255,255,0.08); }
-.avatar { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; margin: 0 auto 20px; }
-.agung-avatar { background: linear-gradient(135deg, #E11D48, #BE123C); box-shadow: 0 10px 20px rgba(225,29,72,0.3); }
-.fauzan-avatar { background: linear-gradient(135deg, #10B981, #059669); box-shadow: 0 10px 20px rgba(16,185,129,0.3); }
-.team-card h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
-.role { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
-.role-red { color: #F17EB8; } 
-.role-green { color: #34D399; }
-.team-card p { font-size: 14px; color: #94A3B8; line-height: 1.6; }
-.footer-credit { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 32px; font-size: 12px; color: #64748B; }
-
-/* =========================================================
-   5. MODAL GLOBAL
-   ========================================================= */
-.saas-modal { 
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100vw; height: 100vh; 
-    background: rgba(15, 23, 42, 0.6); 
-    backdrop-filter: blur(8px); 
-    z-index: 999; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    opacity: 0; 
-    visibility: hidden; 
-    transition: 0.4s ease; 
-}
+.saas-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 999; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.4s ease; padding: 20px; }
 .saas-modal.active { opacity: 1; visibility: visible; }
-.modal-card { 
-    background: var(--bg-card); 
-    padding: 48px; 
-    border-radius: 32px; 
-    width: 90%; /* Responsif di HP */
-    max-width: 440px; 
-    text-align: center; 
-    transform: translateY(30px); 
-    transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
-    box-shadow: var(--shadow-lg); 
-    border: 1px solid var(--border-color); 
-    max-height: 90vh; /* Cegah modal kepanjangan */
-    overflow-y: auto; /* Bisa discroll kalau isinya banyak */
-}
+.modal-card { background: var(--bg-card); padding: 48px; border-radius: 32px; width: 100%; max-width: 440px; text-align: center; transform: translateY(30px); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); max-height: 90vh; overflow-y: auto; }
 .saas-modal.active .modal-card { transform: translateY(0); }
 
-.auth-tab { display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 32px; }
-.auth-tab-btn { flex: 1; padding: 16px; background: none; border: none; font-size: 15px; font-weight: 800; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; margin-bottom: -2px;}
-.auth-tab-btn:hover { color: var(--text-dark); }
-.auth-tab-btn.active { color: var(--text-dark); border-bottom: 3px solid var(--text-dark); }
-
-.saas-input { 
-    width: 100%; 
-    padding: 16px; 
-    border-radius: 12px; 
-    border: 2px solid var(--border-color); 
-    font-size: 15px; 
-    font-weight: 500; 
-    outline: none; 
-    background: #F8FAFC; 
-    transition: 0.2s; 
-    margin-bottom: 16px; 
-    font-family: inherit;
-}
+.saas-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--border-color); font-size: 14px; font-weight: 600; outline: none; background: #F8FAFC; transition: 0.2s; margin-bottom: 16px; font-family: inherit; }
 .saas-input:focus { border-color: var(--text-dark); background: white; box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05); }
-
 .w-100 { width: 100%; justify-content: center; margin-top: 8px; }
-.btn-close-modal { background: none; border: none; color: var(--text-muted); margin-top: 24px; cursor: pointer; font-weight: 800; font-size: 13px; transition: 0.2s; }
-.btn-close-modal:hover { color: var(--text-dark); }
-
-@keyframes pulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
 
 /* =========================================================
-   6. RIWAYAT PATROLI & DRAG AND DROP
-   ========================================================= */
-.riwayat-super-wrapper { background-color: #F8FAFC; color: #1E293B; min-height: 100vh; padding: 60px 20px; font-family: 'Inter', system-ui, sans-serif; }
-.riwayat-container { max-width: 1100px; margin: 0 auto; }
-.riwayat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-.riwayat-title { color: #0F172A; margin: 0; font-size: 2.2rem; font-weight: 900; letter-spacing: -0.5px; }
-.riwayat-subtitle { color: #64748B; margin-top: 8px; font-size: 1rem; }
-
-.filter-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
-.filter-input { background: #FFFFFF; border: 1px solid #CBD5E1; color: #1E293B; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; outline: none; transition: 0.3s; flex: 1; min-width: 150px; }
-.filter-input:focus { border-color: #E11D48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1); }
-
-.btn-cari { background: #E11D48; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; box-shadow: 0 4px 14px 0 rgba(225, 29, 72, 0.2); }
-.btn-cari:hover { box-shadow: 0 6px 20px rgba(225, 29, 72, 0.4); transform: translateY(-1px); }
-.btn-reset { background: #F1F5F9; color: #475569; padding: 12px 20px; border-radius: 8px; cursor: pointer; border: 1px solid #CBD5E1; font-weight: 600; transition: 0.2s; }
-.btn-reset:hover { background: #E2E8F0; color: #1E293B; }
-
-.light-table-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: var(--shadow-sm); overflow-x: auto; }
-.r-table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
-.r-table th { padding: 16px 24px; font-weight: 700; color: #64748B; border-bottom: 1px solid #E2E8F0; background: #F8FAFC; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
-.r-table td { padding: 16px 24px; border-bottom: 1px solid #F1F5F9; color: #334155; font-size: 0.95rem; }
-.r-table tr:hover td { background: #F8FAFC; }
-
-.badge { padding: 6px 14px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
-.badge-done { background: #D1FAE5; color: #065F46; border: 1px solid #34D399; }
-.badge-run { background: #FEF3C7; color: #92400E; border: 1px solid #FBBF24; }
-.btn-kembali { background: #E11D48; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(225, 29, 72, 0.2); transition: 0.2s; }
-
-/* Drag Drop List */
-.sortable-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-.sortable-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; cursor: grab; transition: 0.2s; }
-.sortable-item:active { cursor: grabbing; }
-.sortable-item.dragging { opacity: 0.5; background: #F8FAFC; border: 1px dashed #E11D48; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-.sortable-item.active-model { border: 1px solid #10B981; background: rgba(16, 185, 129, 0.05); }
-.drag-handle { color: #94A3B8; font-weight: 900; font-size: 14px; letter-spacing: -2px; }
-.model-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
-.badge-active-model { background: #10B981; color: white; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
-
-/* =========================================================
-   7. MEDIA QUERIES (FULL RESPONSIVE ANDROID / MOBILE)
+   5. MEDIA QUERIES (FULL RESPONSIVE ANDROID / MOBILE)
    ========================================================= */
 
-/* Tablet & Laptop Kecil */
+/* Tablet (iPad, dsb) */
 @media screen and (max-width: 1024px) {
-    .dashboard-split { flex-direction: column; }
-    .stage-right { padding-top: 0; }
+    .gcs-layout { grid-template-columns: 1fr; } /* Layout jadi 1 kolom bertumpuk */
+    .summary-grid { grid-template-columns: repeat(2, 1fr); } /* History Summary jadi 2x2 */
+    
     .hero-title { font-size: 48px; }
     .hero-feature-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -366,9 +168,11 @@ body {
 /* HP Standar (Android Biasa, iPhone) */
 @media screen and (max-width: 768px) {
     
-    /* Perbaikan Dashboard Utama di HP */
-    .main-content { padding: 20px 16px; }
+    /* Pengecilan Padding Global */
+    .main-content { padding: 16px 12px; }
+    .card { padding: 16px; border-radius: 16px; }
     
+    /* Top Nav Wrap */
     .top-nav { 
         flex-direction: column; 
         align-items: stretch; 
@@ -378,72 +182,62 @@ body {
     .top-nav > div:last-child {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
         justify-content: space-between;
     }
-    
-    .card { padding: 20px; }
+    .nav-btn { flex: 1; text-align: center; justify-content: center; font-size: 12px; padding: 8px 12px;}
 
-    /* Perbaikan Overlay Video di HP */
-    .stage-left .card > div:first-child {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 8px !important;
+    /* Tombol Konek Kamera & Status Wrap */
+    .main-content > div:first-child {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 12px;
+    }
+    #btnBukaModalIP { width: 100%; justify-content: center; }
+
+    /* --- PERBAIKAN OVERLAY VIDEO DI HP --- */
+    /* Karena layar sempit, kita ubah posisi absolute di atas video jadi relative (numpuk) */
+    .visual-stack .card > div[style*="absolute"] {
         position: relative !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        margin-bottom: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        top: 0 !important; left: 0 !important; right: 0 !important;
+        margin-bottom: 16px;
         background: transparent !important;
     }
     
-    /* Tombol Test Mode AI di HP */
-    .stage-left .card img + div {
-        position: static !important;
-        transform: none !important;
-        margin-top: 16px;
+    /* Hardware Vitals Badge Wrap */
+    .visual-stack .card > div[style*="absolute"] > div:last-child {
+        flex-wrap: wrap; /* Biar kalau kepanjangan turun ke bawah */
+        justify-content: flex-start;
         width: 100%;
+        border-radius: 12px !important; /* Kurangi kelengkungan di HP */
     }
-    #btnToggleAI { width: 100%; justify-content: center; }
 
-    /* Perbaikan Landing Page di HP */
-    .saas-navbar { flex-direction: column; gap: 20px; padding: 20px; }
-    .nav-links { flex-direction: column; width: 100%; gap: 12px; }
-    .system-status { width: 100%; justify-content: center; font-size: 11px; padding: 10px; }
-    .nav-link { width: 100%; justify-content: center; background: white; padding: 12px; border-radius: 100px; border: 1px solid var(--border-color); }
-    
-    .saas-hero { padding: 40px 0; }
-    .hero-title { font-size: 36px; }
-    .hero-desc { font-size: 15px; padding: 0 10px; }
-    
-    .hero-actions { flex-direction: column; width: 100%; padding: 0 20px; }
-    .btn-saas-primary, .btn-outline { width: 100%; justify-content: center; }
-    
-    .hero-feature-grid { grid-template-columns: 1fr; padding: 0 20px; }
-    .hf-card { padding: 16px; flex-direction: row; justify-content: flex-start; }
-    
-    .workflow-grid { grid-template-columns: 1fr; }
-    .wf-card { padding: 24px; }
-    
-    .team-container { padding: 40px 20px 30px; border-radius: 24px; }
-    .team-container h2 { font-size: 28px; }
-    .team-card { padding: 24px; max-width: 100%; }
+    /* Tombol Uji Coba AI & Radar Map Wrap */
+    .visual-stack > div[style*="grid"] {
+        grid-template-columns: 1fr !important; /* Jadikan 1 kolom di bawah video */
+    }
 
-    /* Perbaikan Modal IP Kamera & Login di HP */
+    /* History & Table Responsiveness */
+    .summary-grid { grid-template-columns: 1fr; } /* Summary jadi 1 kolom lurus ke bawah */
+    .action-bar { flex-direction: column; gap: 16px; align-items: stretch; }
+    .filter-group { flex-direction: column; align-items: stretch; }
+    .filter-group input { width: 100% !important; }
+    .export-group { flex-direction: column; width: 100%; }
+    .btn-export, .btn-secondary { justify-content: center; width: 100%; }
+
+    /* Perbaikan Modal HP */
     .modal-card { padding: 24px; }
     .modal-card h3 { font-size: 20px; }
-    
-    #modalIP .modal-card > div:first-of-type {
-        flex-direction: column; /* Tombol pilihan ESP32 / Webcam ditumpuk */
-    }
-    #areaKoneksiESP32 > div {
-        flex-direction: column; /* Input IP dan Scan ditumpuk */
-    }
+    #modalIP .modal-card > div:first-of-type { flex-direction: column; }
+    #areaKoneksiESP32 > div { flex-direction: column; }
     #btnAutoScan { width: 100%; padding: 12px; justify-content: center; }
 }
 
-/* HP Super Kecil */
+/* HP Super Kecil (iPhone SE / Layar sempit) */
 @media screen and (max-width: 400px) {
-    .hero-title { font-size: 30px; }
-    .auth-tab-btn { font-size: 13px; padding: 12px; }
+    .stopwatch-time { font-size: 24px; }
+    .val-matang, .val-mentah, .val-bunga { font-size: 24px !important; }
 }

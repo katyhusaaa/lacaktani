@@ -344,4 +344,16 @@ def delete_session(session_id):
         return jsonify({'status': 'success', 'message': 'Data patroli berhasil dihapus!'})
         
     return jsonify({'status': 'error', 'message': 'Data tidak ditemukan!'}), 404
-
+# Tambahin ini di paling bawah file cam_routes.py
+@cam_bp.route('/api/reset_stats', methods=['POST'])
+@login_required
+def reset_stats():
+    # Nge-nol-in memori angka di Python
+    cam_state.count_matang = 0
+    cam_state.count_mentah = 0
+    cam_state.count_bunga = 0
+    
+    # Bersihin tracker biar kotak ungu (counted) hilang
+    reset_tracker() 
+    
+    return jsonify({'status': 'success', 'message': 'Counter berhasil di-reset!'})

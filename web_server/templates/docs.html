@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* ==========================================
+       DOKUMENTASI LAYOUT (MODERN DOCS STYLE)
+       ========================================== */
+    .docs-layout { display: grid; grid-template-columns: 280px 1fr 240px; gap: 48px; max-width: 1440px; margin: 0 auto; padding: 40px 32px; min-height: 100vh; }
+
+    /* Sidebar Nav */
+    .docs-sidebar { position: sticky; top: 100px; height: calc(100vh - 120px); overflow-y: auto; padding-right: 20px; border-right: 1px solid var(--border-color); }
+    .side-group { margin-bottom: 32px; }
+    .side-title { font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+    .side-link { display: block; padding: 8px 0; font-size: 14px; font-weight: 600; color: #475569; text-decoration: none; transition: 0.2s; }
+    .side-link:hover { color: var(--primary); }
+    .side-link.active { color: var(--primary); font-weight: 800; }
+
+    /* Main Content Area */
+    .docs-main { max-width: 800px; }
+    .docs-article h1 { font-size: 40px; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 16px; color: var(--text-dark); }
+    .docs-article h2 { font-size: 24px; font-weight: 800; margin: 48px 0 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+    .docs-article p { font-size: 16px; color: #475569; line-height: 1.8; margin-bottom: 24px; }
+
+    /* Code Blocks ala image_315245.png */
+    pre { background: #0F172A; color: #F8FAFC; padding: 20px; border-radius: 12px; overflow-x: auto; margin-bottom: 24px; position: relative; border: 1px solid #1E293B; }
+    code { font-family: 'Fira Code', monospace; font-size: 14px; }
+    .cmd-line::before { content: "$ "; color: #64748B; }
+
+    /* Callouts / Alerts */
+    .callout { padding: 20px; border-radius: 12px; margin-bottom: 24px; display: flex; gap: 16px; align-items: flex-start; border: 1px solid transparent; }
+    .callout-info { background: #F0F9FF; border-color: #BAE6FD; color: #0369A1; }
+    .callout-warning { background: #FFFBEB; border-color: #FEF3C7; color: #92400E; }
+    .callout-icon { margin-top: 2px; }
+
+    /* Right On-This-Page Nav */
+    .on-page-nav { position: sticky; top: 100px; height: fit-content; }
+
+    @media screen and (max-width: 1024px) {
+        .docs-layout { grid-template-columns: 1fr; }
+        .docs-sidebar, .on-page-nav { display: none; }
+    }
+</style>
+
+<div class="docs-layout">
+    <aside class="docs-sidebar">
+        <div class="side-group">
+            <div class="side-title">Getting Started</div>
+            <a href="#intro" class="side-link active">Introduction</a>
+            <a href="#requirements" class="side-link">System Requirements</a>
+            <a href="#quickstart" class="side-link">Quickstart (1-Click)</a>
+        </div>
+        <div class="side-group">
+            <div class="side-title">Hardware Setup</div>
+            <a href="#esp32" class="side-link">ESP32-CAM Config</a>
+            <a href="#drone" class="side-link">Drone Assembly</a>
+        </div>
+        <div class="side-group">
+            <div class="side-title">Software Core</div>
+            <a href="#yolo" class="side-link">YOLOv5 Training</a>
+            <a href="#flask" class="side-link">Flask API Reference</a>
+        </div>
+    </aside>
+
+    <main class="docs-main">
+        <article class="docs-article">
+            <h1 id="intro">Dokumentasi LacakTani.ai</h1>
+            <p>Selamat datang di panduan resmi LacakTani.ai. Proyek ini dirancang untuk mendeteksi fase pertumbuhan stroberi secara real-time menggunakan computer vision (YOLOv5) yang diintegrasikan dengan UAV (Drone).</p>
+
+            <div class="callout callout-info">
+                <div class="callout-icon">💡</div>
+                <div>LacakTani adalah proyek <b>Open Source</b>. Kamu bisa menemukan source code lengkap di GitHub <a href="https://github.com/agungxsoeltani" style="color: inherit; font-weight: 700;">@agungxsoeltani</a>.</div>
+            </div>
+
+            <h2 id="requirements">System Requirements</h2>
+            <p>Sebelum memulai instalasi, pastikan lingkungan pengembangan kamu memenuhi kriteria berikut:</p>
+            <ul style="margin-bottom: 24px; padding-left: 20px; color: #475569;">
+                <li><b>Python 3.10+</b> (Wajib)</li>
+                <li><b>CUDA Toolkit</b> (Opsional, untuk akselerasi GPU)</li>
+                <li><b>ESP32-CAM</b> dengan firmware terbaru</li>
+                <li>RAM Minimal 8GB</li>
+            </ul>
+
+            <h2 id="quickstart">Quickstart Installation</h2>
+            <p>Jalankan perintah berikut di terminal kamu untuk mengunduh dan menginstal seluruh dependensi secara otomatis:</p>
+            
+            <pre><code class="cmd-line">git clone https://github.com/agungxsoeltani/lacaktani.git</code>
+<code class="cmd-line">cd lacaktani</code>
+<code class="cmd-line">pip install -r requirements.txt</code>
+<code class="cmd-line">python app.py</code></pre>
+
+            <div class="callout callout-warning">
+                <div class="callout-icon">⚠️</div>
+                <div>Jika kamu menggunakan Windows, sangat disarankan menjalankan sistem di dalam <b>WSL2</b> atau virtual environment (venv) untuk menghindari konflik pustaka PyTorch.</div>
+            </div>
+
+            <h2 id="esp32">Hardware Configuration</h2>
+            <p>Modul ESP32-CAM harus dikonfigurasi untuk memancarkan stream HTTP di alamat lokal. Pastikan file <code>config.h</code> di Arduino IDE sudah diset ke mode <b>VGA (640x480)</b> agar mendapatkan FPS maksimal.</p>
+
+            <pre><code>// Arduino IDE Setup
+#define CAMERA_MODEL_AI_THINKER
+#define FRAMESIZE_VGA  // Set ke VGA untuk FPS stabil</code></pre>
+
+        </article>
+    </main>
+
+    <aside class="on-page-nav">
+        <div class="side-title">On This Page</div>
+        <a href="#intro" class="side-link">Introduction</a>
+        <a href="#requirements" class="side-link">Requirements</a>
+        <a href="#quickstart" class="side-link">Quickstart</a>
+        <a href="#esp32" class="side-link">Hardware Config</a>
+    </aside>
+</div>
+
+<script>
+    // Simple script to highlight active menu on scroll
+    window.addEventListener('DOMContentLoaded', () => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const id = entry.target.getAttribute('id');
+                const link = document.querySelector(`.side-link[href="#${id}"]`);
+                if (entry.intersectionRatio > 0) {
+                    document.querySelectorAll('.side-link').forEach(l => l.classList.remove('active'));
+                    if(link) link.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('h1, h2').forEach((section) => {
+            observer.observe(section);
+        });
+    });
+</script>
+{% endblock %}

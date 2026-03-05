@@ -45,10 +45,10 @@ COLORS = {
 # 2. CORE FUNCTIONS (Load, Change, Reset)
 # ==========================================
 def reset_tracker():
-    global spatial_memory, global_counts, tracker
+    global spatial_memory, global_counts, tracker, recent_detection_history
     spatial_memory = []
+    recent_detection_history = [] # <--- TAMBAHAN BARU BIAR HUD BERSIH
     global_counts = {'matang': 0, 'mentah': 0, 'bunga': 0}
-    # VVV UBAH JUGA YANG DI BAWAH INI VVV
     tracker = sv.ByteTrack(track_activation_threshold=0.1, lost_track_buffer=30, minimum_matching_threshold=0.4, frame_rate=30)
     print("🔄 [SYSTEM] Tracker & Spatial Memory Reset!")
     
