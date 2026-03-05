@@ -100,9 +100,18 @@ def set_resolution():
 def cam_control():
     data = request.json
     var_name = data.get('var') 
-    val = int(data.get('val'))      
+    raw_val = data.get('val')      
     
-    # Simpan status ke tabel User
+    # 1. KHUSUS AI CONFIDENCE (Pakai Float / Desimal)
+    if var_name == 'ai_conf':
+        new_conf = float(raw_val)
+        current_user.ai_conf = new_conf
+        cam_state.AI_CONFIDENCE = new_conf # <-- INI KUNCI UTAMANYA! Update state memori
+        db.session.commit()
+        return jsonify({'status': 'success'})
+
+    # 2. KHUSUS HARDWARE ESP32 (Pakai Integer / Bilangan Bulat)
+    val = int(float(raw_val))
     if var_name == 'brightness': current_user.cam_bright = val
     elif var_name == 'contrast': current_user.cam_contrast = val
     elif var_name == 'saturation': current_user.cam_sat = val
@@ -115,9 +124,11 @@ def cam_control():
     db.session.commit()
 
     if cam_state.ACTIVE_CAMERA_URL:
-        ip = urlparse(cam_state.ACTIVE_CAMERA_URL).hostname 
+        # PENTING: Tambahin str() biar aman kalau lagi pake Index Webcam (angka 0)
+        ip = urlparse(str(cam_state.ACTIVE_CAMERA_URL)).hostname 
         try: requests.get(f"http://{ip}/control?var={var_name}&val={val}", timeout=2)
         except: pass
+        
     return jsonify({'status': 'success'})
 
 @cam_bp.route('/api/set_ai_params', methods=['POST'])
@@ -142,35 +153,48 @@ import random # Jangan lupa tambahin ini di paling atas file kalau belum ada
 
 @cam_bp.route('/api/stream_stats')
 def stream_stats():
-    # ==========================================
-    # [BARU] LOGIKA TARIK DATA TELEMETRY (RSSI & GPS)
-    # ==========================================
-    rssi_val = -100 # Default kalau offline (Merah / 1 batang)
-    
-    if cam_state.ACTIVE_CAMERA_URL:
-        # --- MODE 1: NANTI KALAU ESP32 UDAH SIAP ---
-        # ip = urlparse(cam_state.ACTIVE_CAMERA_URL).hostname
-        # try:
-        #     # Nembak endpoint /telemetry di ESP32 dengan timeout sangat cepat (0.5 detik)
-        #     resp = requests.get(f"http://{ip}/telemetry", timeout=0.5)
-        #     if resp.status_code == 200:
-        #         rssi_val = resp.json().get('rssi', -100)
-        # except Exception:
-        #     pass 
-            
-        # --- MODE 2: SEMENTARA KITA SIMULASIKAN DULU BIAR ANIMASI JALAN ---
-        # Bikin angka random antara -40 (Sangat Kuat) sampai -85 (Lemah)
-        rssi_val = random.randint(-85, -40)
-
-    # Mengirim data ke Frontend (termasuk RSSI baru)
-    return jsonify({
-        'fps': cam_state.current_fps,
-        'matang': cam_state.count_matang, 
-        'mentah': cam_state.count_mentah,
-        'bunga': cam_state.count_bunga,
+    # 1. Siapkan keranjang kosong (Default kalau pakai Webcam / Offline)
+    stats_data = {
+        'fps': getattr(cam_state, 'current_fps', 0),
+        'matang': getattr(cam_state, 'count_matang', 0), 
+        'mentah': getattr(cam_state, 'count_mentah', 0),
+        'bunga': getattr(cam_state, 'count_bunga', 0),
         'res': getattr(cam_state, 'current_res', '---'),
-        'rssi': rssi_val # <--- Data sinyal dikirim ke JS!
-    })
+        'rssi': None,
+        'free_ram': None,
+        'uptime': None,
+        'temp': None,
+        'gps_lat': None,
+        'gps_lng': None,
+        'gps_alt': None,
+        'gps_sat': 0
+    }
+    
+    # 2. Cek apakah ada kamera yang terkoneksi
+    if cam_state.ACTIVE_CAMERA_URL is not None: 
+        # JIKA PAKAI ESP32 (Koneksi Asli via IP)
+        if isinstance(cam_state.ACTIVE_CAMERA_URL, str) and "http" in cam_state.ACTIVE_CAMERA_URL:
+            ip = urlparse(cam_state.ACTIVE_CAMERA_URL).hostname
+            try:
+                # Tembak port 82 yang udah lu bikin di C++
+                resp = requests.get(f"http://{ip}:82/telemetry", timeout=0.5)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    
+                    # Ekstrak semua parameter dewa dari ESP32
+                    stats_data['rssi'] = data.get('rssi', -100)
+                    stats_data['free_ram'] = data.get('free_ram')
+                    stats_data['uptime'] = data.get('uptime')
+                    stats_data['temp'] = data.get('temp')
+                    stats_data['gps_lat'] = data.get('gps_lat')
+                    stats_data['gps_lng'] = data.get('gps_lng')
+                    stats_data['gps_alt'] = data.get('gps_alt')
+                    stats_data['gps_sat'] = data.get('gps_sat', 0)
+            except Exception:
+                stats_data['rssi'] = -100 # Kalau koneksi putus RTO
+
+    # 3. Kirim keranjang data ke Javascript (Dashboard HTML)
+    return jsonify(stats_data)
 
 @cam_bp.route('/api/start_session', methods=['POST'])
 @login_required

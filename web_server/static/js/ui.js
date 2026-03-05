@@ -10,7 +10,6 @@ export const Toast = Swal.mixin({
 });
 
 export function initUIDrawer() {
-    // Logika Drawer Pengaturan
     const btnSettings = document.getElementById('btnSettings');
     const closeDrawerBtn = document.getElementById('closeDrawerBtn');
     const drawerOverlay = document.getElementById('drawerOverlay');
@@ -33,9 +32,7 @@ export function initUIDrawer() {
 }
 
 export function initPremiumPopup() {
-    // Logika Pop-up Iseng (Paywall)
     const premiumButtons = document.querySelectorAll('.btn-premium-trigger');
-    
     premiumButtons.forEach(btn => {
         btn.addEventListener('mouseover', () => { btn.style.borderColor = 'var(--primary)'; });
         btn.addEventListener('mouseout', () => { btn.style.borderColor = '#E2E8F0'; });
@@ -81,3 +78,225 @@ export function initPremiumPopup() {
         });
     });
 }
+
+// ==========================================
+// INISIALISASI SETTING, LOCK ESP32, & PRESET KUSTOM
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    const btnESP32 = document.getElementById('btnPilihESP32');
+    const btnWebcam = document.getElementById('btnPilihWebcam');
+    const areaESP32 = document.getElementById('areaKoneksiESP32');
+    const areaWebcam = document.getElementById('areaKoneksiWebcam');
+    const iconWebcam = document.getElementById('iconWebcam');
+    const selectDevice = document.getElementById('selectWebcamDevice');
+
+    window.activeSourceType = 'esp32';
+
+    // --- 1. FUNGSI LOCK/UNLOCK OTOMATIS BERDASARKAN SUMBER KAMERA ---
+    function syncSettingLock() {
+        const isESP32 = window.activeSourceType === 'esp32';
+        const container = document.getElementById('espGroupContainer');
+        const indicator = document.getElementById('lockStatusIndicator');
+        if (container && indicator) {
+            container.style.opacity = isESP32 ? "1" : "0.3";
+            container.style.pointerEvents = isESP32 ? "auto" : "none";
+            container.style.filter = isESP32 ? "none" : "grayscale(1)";
+            indicator.style.display = isESP32 ? "none" : "flex";
+        }
+    }
+
+    if (btnESP32) {
+        btnESP32.addEventListener('click', () => {
+            window.activeSourceType = 'esp32';
+            btnESP32.classList.add('active');
+            btnWebcam.classList.remove('active');
+            
+            btnESP32.style.borderColor = 'var(--primary)';
+            btnESP32.style.background = 'var(--primary-soft)';
+            btnESP32.style.boxShadow = '0 8px 20px rgba(225, 29, 72, 0.15)';
+            
+            btnWebcam.style.borderColor = 'var(--border-color)';
+            btnWebcam.style.background = 'white';
+            btnWebcam.style.boxShadow = 'none';
+            if(iconWebcam) iconWebcam.setAttribute('stroke', '#64748B');
+
+            areaESP32.style.display = 'block';
+            areaWebcam.style.display = 'none';
+            syncSettingLock();
+        });
+    }
+
+    if (btnWebcam) {
+        btnWebcam.addEventListener('click', async () => {
+            window.activeSourceType = 'webcam';
+            btnWebcam.classList.add('active');
+            btnESP32.classList.remove('active');
+            
+            btnWebcam.style.borderColor = '#0EA5E9';
+            btnWebcam.style.background = '#F0F9FF';
+            btnWebcam.style.boxShadow = '0 8px 20px rgba(14, 165, 233, 0.15)';
+            if(iconWebcam) iconWebcam.setAttribute('stroke', '#0EA5E9');
+            
+            btnESP32.style.borderColor = 'var(--border-color)';
+            btnESP32.style.background = 'white';
+            btnESP32.style.boxShadow = 'none';
+
+            areaESP32.style.display = 'none';
+            areaWebcam.style.display = 'block';
+            syncSettingLock();
+
+            if (selectDevice) {
+                selectDevice.innerHTML = '<option value="" disabled selected>Meminta izin & mencari kamera...</option>';
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    stream.getTracks().forEach(track => track.stop());
+
+                    selectDevice.innerHTML = ''; 
+                    if (videoDevices.length === 0) {
+                        selectDevice.innerHTML = '<option value="" disabled>Kamera tidak ditemukan!</option>';
+                        return;
+                    }
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = index; 
+                        option.text = device.label || `Kamera ${index + 1}`;
+                        selectDevice.appendChild(option);
+                    });
+                } catch (err) {
+                    console.error("Error Kamera:", err);
+                    selectDevice.innerHTML = '<option value="" disabled>Akses Ditolak Browser / Error</option>';
+                }
+            }
+        });
+    }
+
+    // --- FIX CONFIDENCE SLIDER AGAR REAL-TIME ---
+    const aiSlider = document.getElementById('aiConfidence');
+    const aiLabel = document.getElementById('valConf');
+    if (aiSlider) {
+        aiSlider.addEventListener('input', (e) => { if(aiLabel) aiLabel.textContent = e.target.value; });
+        aiSlider.addEventListener('change', async (e) => {
+            await fetch('/api/cam_control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ var: 'ai_conf', val: e.target.value })
+            });
+        });
+    }
+
+    // ========================================================
+    // --- SISTEM USER CUSTOM PRESET (DIPERBAIKI 100%) ---
+    // ========================================================
+    
+    // Pastikan ID ini SAMA PERSIS dengan ID yang ada di file HTML lu
+    const allSettingIds = [
+        'aiConfidence', 'resSelect', 'camBrightness', 'camContrast', 
+        'camSaturation', 'camExposure', 'camVflip', 'camHmirror', 
+        'camAwb', 'camAec', 'camLenc'
+    ];
+
+    window.saveCurrentAsPreset = function() {
+        const name = prompt("Masukan nama preset (Misal: Kebun Pagi Terik):");
+        if (!name) return;
+        
+        const currentSettings = {};
+        allSettingIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                // Konversi semua ke string saat disimpan biar seragam
+                currentSettings[id] = String(el.value); 
+            }
+        });
+
+        let userPresets = JSON.parse(localStorage.getItem('userPresets') || '{}');
+        userPresets[name] = currentSettings;
+        localStorage.setItem('userPresets', JSON.stringify(userPresets));
+        
+        renderUserPresets();
+        Swal.fire({
+            icon: 'success', title: 'Tersimpan!', 
+            text: `Preset '${name}' berhasil disimpan. (Klik Kanan untuk hapus)`, 
+            timer: 2500, showConfirmButton: false
+        });
+    };
+
+    window.applyPreset = function(mode) {
+        let vals = {};
+        
+        if (mode === 'high_accuracy') {
+            vals = { aiConfidence: "0.75", resSelect: "8", camBrightness: "0", camContrast: "1", camSaturation: "1", camExposure: "0", camVflip: "0", camHmirror: "0", camAwb: "1", camAec: "1", camLenc: "1" };
+        } else if (mode === 'standard') {
+            vals = { aiConfidence: "0.45", resSelect: "6", camBrightness: "0", camContrast: "0", camSaturation: "0", camExposure: "0", camVflip: "0", camHmirror: "0", camAwb: "1", camAec: "1", camLenc: "1" };
+        } else {
+            const userPresets = JSON.parse(localStorage.getItem('userPresets') || '{}');
+            vals = userPresets[mode] || {};
+        }
+
+        if (Object.keys(vals).length > 0) {
+            let delay = 0; // Kasih delay kecil biar ESP32 nggak kaget diserbu 11 perintah sekaligus
+            
+            Object.keys(vals).forEach(id => {
+                const el = document.getElementById(id);
+                // Pastikan tipe data sama saat membandingkan
+                if (el && String(el.value) !== String(vals[id])) {
+                    el.value = vals[id];
+                    el.dispatchEvent(new Event('input')); 
+                    
+                    // Delay pengiriman ke ESP32 tiap 50ms (0.05 detik)
+                    setTimeout(() => {
+                        el.dispatchEvent(new Event('change'));
+                    }, delay);
+                    delay += 50; 
+                }
+            });
+            
+            Toast.fire({ icon: 'success', title: `Menggunakan Preset: ${mode}` });
+        }
+    };
+
+    // FUNGSI BARU: MENGHAPUS PRESET (Klik Kanan)
+    window.deletePreset = function(e, name) {
+        e.preventDefault(); // Matikan menu klik kanan bawaan browser
+        
+        Swal.fire({
+            title: 'Hapus Preset?',
+            text: `Apakah lu yakin mau hapus preset "${name}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#E11D48',
+            cancelButtonColor: '#475569',
+            confirmButtonText: 'Ya, Hapus!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let userPresets = JSON.parse(localStorage.getItem('userPresets') || '{}');
+                delete userPresets[name]; // Hapus dari memori
+                localStorage.setItem('userPresets', JSON.stringify(userPresets));
+                renderUserPresets(); // Render ulang UI
+                Toast.fire({ icon: 'info', title: `Preset ${name} dihapus.` });
+            }
+        });
+    };
+
+    function renderUserPresets() {
+        const container = document.getElementById('userPresetList');
+        if(!container) return;
+        
+        const userPresets = JSON.parse(localStorage.getItem('userPresets') || '{}');
+        
+        // Render dengan tambahan oncontextmenu (Klik Kanan)
+        container.innerHTML = Object.keys(userPresets).map(name => 
+            `<button 
+                onclick="applyPreset('${name}')" 
+                oncontextmenu="deletePreset(event, '${name}')" 
+                class="btn-outline" 
+                title="Klik Kiri: Terapkan | Klik Kanan: Hapus"
+                style="font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+            >${name}</button>`
+        ).join('');
+    }
+    
+    renderUserPresets();
+    syncSettingLock(); 
+});

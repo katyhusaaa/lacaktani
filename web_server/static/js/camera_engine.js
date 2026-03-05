@@ -4,54 +4,77 @@ import { Toast } from './ui.js';
 // ==========================================
 // UTILITY: FUNGSI UPDATE ANIMASI SINYAL
 // ==========================================
-function updateSignalBars(rssi) {
-    const bars = document.querySelectorAll('#signalBars .bar');
-    const rssiText = document.getElementById('rssiText');
-    const dashStatusText = document.getElementById('dashStatusText');
-    
-    if (!bars.length) return;
+// --- FUNGSI UPDATE ANIMASI SINYAL & TEKS ---
+        function updateSignalBars(rssi) {
+            const bars = document.querySelectorAll('#signalBars .bar');
+            const rssiText = document.getElementById('rssiText');
+            const dashStatusText = document.getElementById('dashStatusText');
+            
+            if (!bars.length) return;
 
-    // Reset warna jadi abu-abu
-    bars.forEach(bar => bar.style.background = '#334155');
+            // Reset warna semua bar jadi abu-abu
+            bars.forEach(bar => bar.style.background = '#334155');
 
-    // Jika offline / tidak ada sinyal
-    if (rssi === -100 || !rssi) {
-        if(dashStatusText) {
-            dashStatusText.textContent = 'Offline';
-            dashStatusText.style.color = '#94A3B8';
+            // 1. JIKA KAMERA LOKAL / WEBCAM (Nilai RSSI kosong / null)
+            if (rssi === null) {
+                if(dashStatusText) {
+                    dashStatusText.textContent = 'Kamera Lokal (USB/LAN)';
+                    dashStatusText.style.color = '#0EA5E9'; // Warna Biru Cyan
+                }
+                if(rssiText) rssiText.style.display = 'none';
+                return;
+            }
+
+            // 2. JIKA ESP32 TAPI OFFLINE / PUTUS KONEKSI (-100)
+            if (rssi === -100) {
+                if(dashStatusText) {
+                    dashStatusText.textContent = 'Sinyal ESP32 Terputus';
+                    dashStatusText.style.color = '#E11D48'; // Warna Merah
+                }
+                if(rssiText) rssiText.style.display = 'none';
+                return;
+            }
+
+            // Tampilkan angka dBm jika ada sinyal
+            if(rssiText) {
+                rssiText.style.display = 'inline-block';
+                rssiText.textContent = `${rssi} dBm`;
+            }
+
+            // 3. LOGIKA DINAMIS TEKS DAN WARNA BERDASARKAN KEKUATAN SINYAL
+            if (rssi >= -60) {
+                // 4 Batang Hijau (Kuat: 0 sampai -60 dBm)
+                bars.forEach(bar => bar.style.background = '#10B981');
+                if(dashStatusText) {
+                    dashStatusText.textContent = 'Sinyal Kuat';
+                    dashStatusText.style.color = '#10B981';
+                }
+            } else if (rssi >= -70) {
+                // 3 Batang Kuning (Sedang: -61 sampai -70 dBm)
+                bars[0].style.background = '#F59E0B';
+                bars[1].style.background = '#F59E0B';
+                bars[2].style.background = '#F59E0B';
+                if(dashStatusText) {
+                    dashStatusText.textContent = 'Sinyal Sedang';
+                    dashStatusText.style.color = '#F59E0B';
+                }
+            } else if (rssi >= -80) {
+                // 2 Batang Oranye (Lemah: -71 sampai -80 dBm)
+                bars[0].style.background = '#F97316';
+                bars[1].style.background = '#F97316';
+                if(dashStatusText) {
+                    dashStatusText.textContent = 'Sinyal Lemah';
+                    dashStatusText.style.color = '#F97316';
+                }
+            } else {
+                // 1 Batang Merah (Buruk/Sekarat: di bawah -80 dBm)
+                bars[0].style.background = '#E11D48';
+                if(dashStatusText) {
+                    dashStatusText.textContent = 'Sinyal Buruk';
+                    dashStatusText.style.color = '#E11D48';
+                }
+            }
         }
-        if(rssiText) rssiText.style.display = 'none';
-        return;
-    }
-
-    // Jika Terkoneksi
-    if(dashStatusText) {
-        dashStatusText.textContent = 'Terkoneksi';
-        dashStatusText.style.color = '#10B981';
-    }
-    if(rssiText) {
-        rssiText.style.display = 'inline-block';
-        rssiText.textContent = `${rssi} dBm`;
-    }
-
-    // Logika pewarnaan batang sinyal
-    if (rssi >= -60) {
-        // 4 Batang Hijau (Kuat)
-        bars.forEach(bar => bar.style.background = '#10B981');
-    } else if (rssi >= -70) {
-        // 3 Batang Kuning (Sedang)
-        bars[0].style.background = '#F59E0B';
-        bars[1].style.background = '#F59E0B';
-        bars[2].style.background = '#F59E0B';
-    } else if (rssi >= -80) {
-        // 2 Batang Oranye (Lemah)
-        bars[0].style.background = '#F97316';
-        bars[1].style.background = '#F97316';
-    } else {
-        // 1 Batang Merah (Sekarat)
-        bars[0].style.background = '#E11D48';
-    }
-}
 
 // ==========================================
 // 1. INISIALISASI STREAM KAMERA (MODAL & KONEKSI)

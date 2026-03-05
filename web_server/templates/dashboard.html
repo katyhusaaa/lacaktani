@@ -35,6 +35,10 @@
         letter-spacing: 4px;
         text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
     }
+
+    /* CSS Tambahan untuk Preset & Lock */
+    .preset-card { padding: 16px; background: #F8FAFC; border-radius: 12px; border: 1.5px dashed #CBD5E1; margin-top: 20px; }
+    .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
     
     @media (max-width: 1200px) {
         .gcs-layout { grid-template-columns: 1fr; } /* Balik ke 1 kolom kalau layar sempit */
@@ -49,53 +53,89 @@
     </div>
     <div class="drawer-content">
         <div style="margin-bottom: 32px;">
-            <span class="wf-step" style="font-size: 11px; padding: 4px 12px; margin-bottom: 12px;">ADJUSTMENT</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span class="wf-step" style="font-size: 11px; padding: 4px 12px;">ADJUSTMENT</span>
+                <div id="lockStatusIndicator" style="display: none; align-items: center; gap: 6px; color: #E11D48; background: #FFF1F2; padding: 4px 10px; border-radius: 6px; border: 1px solid #FECDD3;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <span style="font-size: 10px; font-weight: 900; letter-spacing: 0.05em;">ESP32 ONLY</span>
+                </div>
+            </div>
             <h4 style="font-size: 16px; margin-bottom: 16px; font-weight: 700; color: var(--text-dark);">Optimasi Lensa ESP32</h4>
             
-            <div class="control-group" style="margin-bottom: 16px;">
-                <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Resolusi Video</label>
-                <select id="resSelect" class="saas-input" style="padding: 10px; margin-bottom: 0;">
-                    <option value="4" {% if current_user.cam_res=='4' %}selected{% endif %}>QVGA (320x240) - Super Cepat</option>
-                    <option value="5" {% if current_user.cam_res=='5' %}selected{% endif %}>CIF (400x296) - Cepat</option>
-                    <option value="6" {% if current_user.cam_res=='6' %}selected{% endif %}>VGA (640x480) - Stabil</option>
-                    <option value="7" {% if current_user.cam_res=='7' %}selected{% endif %}>SVGA (800x600) - Jernih</option>
-                    <option value="8" {% if current_user.cam_res=='8' %}selected{% endif %}>XGA (1024x768) - Berat</option>
-                    <option value="9" {% if current_user.cam_res=='9' %}selected{% endif %}>SXGA (1280x1024) - Sangat Berat</option>
-                    <option value="10" {% if current_user.cam_res=='10' %}selected{% endif %}>UXGA (1600x1200) - Maksimal (Lag)</option>
-                </select>
-            </div>
-            <div class="control-group" style="margin-bottom: 16px;">
-                <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Kecerahan <span id="valBrightness" style="color: var(--primary);">0</span></label>
-                <input type="range" id="camBrightness" min="-2" max="2" value="{{ current_user.cam_bright }}" class="saas-slider">
-            </div>
-            <div class="control-group" style="margin-bottom: 16px;">
-                <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Kontras <span id="valContrast" style="color: var(--primary);">0</span></label>
-                <input type="range" id="camContrast" min="-2" max="2" value="{{ current_user.cam_contrast }}" class="saas-slider">
-            </div>
-            <div class="control-group" style="margin-bottom: 16px;">
-                <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Saturasi <span id="valSaturation" style="color: var(--primary);">0</span></label>
-                <input type="range" id="camSaturation" min="-2" max="2" value="{{ current_user.cam_sat }}" class="saas-slider">
-            </div>
-            <div class="control-group" style="margin-bottom: 16px;">
-                <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Eksposur <span id="valExposure" style="color: var(--primary);">0</span></label>
-                <input type="range" id="camExposure" min="-2" max="2" value="{{ current_user.cam_exp }}" class="saas-slider">
-            </div>
-            
-            <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 24px 0;">
-            <h4 style="font-size: 14px; margin-bottom: 16px; font-weight: 700; color: var(--text-muted);">Orientasi & Sensor AI</h4>
-            <div class="control-group" style="margin-bottom: 16px;">
-                <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Vertical Flip</label>
-                <select id="camVflip" class="saas-input" style="padding: 10px; margin-bottom: 0;">
-                    <option value="0" {% if current_user.cam_vflip==0 %}selected{% endif %}>Off (Normal)</option>
-                    <option value="1" {% if current_user.cam_vflip==1 %}selected{% endif %}>On (Terbalik)</option>
-                </select>
-            </div>
-            <div class="control-group" style="margin-bottom: 16px;">
-                <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Horizontal Mirror</label>
-                <select id="camHmirror" class="saas-input" style="padding: 10px; margin-bottom: 0;">
-                    <option value="0" {% if current_user.cam_hmirror==0 %}selected{% endif %}>Off (Normal)</option>
-                    <option value="1" {% if current_user.cam_hmirror==1 %}selected{% endif %}>On (Kaca)</option>
-                </select>
+            <div id="espGroupContainer" style="transition: all 0.3s ease;">
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Resolusi Video</label>
+                    <select id="resSelect" class="saas-input" style="padding: 10px; margin-bottom: 0;">
+                        <option value="4" {% if current_user.cam_res=='4' %}selected{% endif %}>QVGA (320x240) - Super Cepat</option>
+                        <option value="5" {% if current_user.cam_res=='5' %}selected{% endif %}>CIF (400x296) - Cepat</option>
+                        <option value="6" {% if current_user.cam_res=='6' %}selected{% endif %}>VGA (640x480) - Stabil</option>
+                        <option value="7" {% if current_user.cam_res=='7' %}selected{% endif %}>SVGA (800x600) - Jernih</option>
+                        <option value="8" {% if current_user.cam_res=='8' %}selected{% endif %}>XGA (1024x768) - Berat</option>
+                        <option value="9" {% if current_user.cam_res=='9' %}selected{% endif %}>SXGA (1280x1024) - Sangat Berat</option>
+                        <option value="10" {% if current_user.cam_res=='10' %}selected{% endif %}>UXGA (1600x1200) - Maksimal (Lag)</option>
+                    </select>
+                </div>
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Kecerahan <span id="valBrightness" style="color: var(--primary);">0</span></label>
+                    <input type="range" id="camBrightness" min="-2" max="2" value="{{ current_user.cam_bright }}" class="saas-slider">
+                </div>
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Kontras <span id="valContrast" style="color: var(--primary);">0</span></label>
+                    <input type="range" id="camContrast" min="-2" max="2" value="{{ current_user.cam_contrast }}" class="saas-slider">
+                </div>
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Saturasi <span id="valSaturation" style="color: var(--primary);">0</span></label>
+                    <input type="range" id="camSaturation" min="-2" max="2" value="{{ current_user.cam_sat }}" class="saas-slider">
+                </div>
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Eksposur <span id="valExposure" style="color: var(--primary);">0</span></label>
+                    <input type="range" id="camExposure" min="-2" max="2" value="{{ current_user.cam_exp }}" class="saas-slider">
+                </div>
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Horizontal Mirror</label>
+                    <select id="camHmirror" class="saas-input" style="padding: 10px; margin-bottom: 0;">
+                        <option value="0" {% if current_user.cam_hmirror==0 %}selected{% endif %}>Off (Normal)</option>
+                        <option value="1" {% if current_user.cam_hmirror==1 %}selected{% endif %}>On (Kaca)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Auto White Balance</label>
+                    <select id="camAwb" class="saas-input" style="padding: 10px; margin-bottom: 0;">
+                        <option value="1" {% if current_user.cam_awb==1 %}selected{% endif %}>On (Otomatis)</option>
+                        <option value="0" {% if current_user.cam_awb==0 %}selected{% endif %}>Off (Manual)</option>
+                    </select>
+                </div>
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Auto Exposure (AEC)</label>
+                    <select id="camAec" class="saas-input" style="padding: 10px; margin-bottom: 0;">
+                        <option value="1" {% if current_user.cam_aec==1 %}selected{% endif %}>On (Otomatis)</option>
+                        <option value="0" {% if current_user.cam_aec==0 %}selected{% endif %}>Off (Manual)</option>
+                    </select>
+                </div>
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Lens Correction</label>
+                    <select id="camLenc" class="saas-input" style="padding: 10px; margin-bottom: 0;">
+                        <option value="1" {% if current_user.cam_lenc==1 %}selected{% endif %}>On (Koreksi Aktif)</option>
+                        <option value="0" {% if current_user.cam_lenc==0 %}selected{% endif %}>Off (Mata Ikan)</option>
+                    </select>
+                </div>
+                <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 24px 0;">
+                <h4 style="font-size: 14px; margin-bottom: 16px; font-weight: 700; color: var(--text-muted);">Orientasi & Sensor AI</h4>
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Vertical Flip</label>
+                    <select id="camVflip" class="saas-input" style="padding: 10px; margin-bottom: 0;">
+                        <option value="0" {% if current_user.cam_vflip==0 %}selected{% endif %}>Off (Normal)</option>
+                        <option value="1" {% if current_user.cam_vflip==1 %}selected{% endif %}>On (Terbalik)</option>
+                    </select>
+                </div>
+                <div class="control-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Horizontal Mirror</label>
+                    <select id="camHmirror" class="saas-input" style="padding: 10px; margin-bottom: 0;">
+                        <option value="0" {% if current_user.cam_hmirror==0 %}selected{% endif %}>Off (Normal)</option>
+                        <option value="1" {% if current_user.cam_hmirror==1 %}selected{% endif %}>On (Kaca)</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -107,7 +147,20 @@
                 <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">Confidence Threshold <span id="valConf" style="color: var(--primary);">{{ current_user.ai_conf }}</span></label>
                 <input type="range" id="aiConfidence" min="0.1" max="0.9" step="0.05" value="{{ current_user.ai_conf }}" class="saas-slider">
             </div>
-            <div class="control-group">
+
+            <div class="preset-card">
+                <label style="font-size: 11px; font-weight: 900; color: #64748B; display: block; text-transform: uppercase;">Smart Presets</label>
+                <div class="preset-grid">
+                    <button onclick="applyPreset('standard')" class="btn-outline" style="font-size: 10px;">Standard</button>
+                    <button onclick="applyPreset('high_accuracy')" class="btn-outline" style="font-size: 10px;">High Acc</button>
+                </div>
+                <hr style="margin: 12px 0; border: 0; border-top: 1px solid #E2E8F0;">
+                <label style="font-size: 11px; font-weight: 900; color: #64748B; display: block; text-transform: uppercase;">User Custom Presets</label>
+                <div id="userPresetList" class="preset-grid"></div>
+                <button onclick="saveCurrentAsPreset()" class="btn-saas-primary w-100" style="margin-top: 12px; font-size: 11px; padding: 8px;">+ Simpan Preset Sekarang</button>
+            </div>
+
+            <div class="control-group" style="margin-top: 24px;">
                 <label style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark);">
                     Model Weights
                     <label for="uploadModelBtn" style="color: var(--primary); cursor: pointer; font-size: 12px; font-weight: 800;">+ Upload .pt</label>
@@ -121,7 +174,7 @@
 
 <div class="app-layout" id="phaseDashboard" style="flex-direction: column; padding: 0;">
     <header class="top-nav" style="box-shadow: var(--shadow-sm);">
-        <div class="logo" style="margin-bottom: 0;">LacakTani<span class="text-primary">.ai</span></div>
+        <div class="logo">LacakTani<span class="text-primary">.ai</span></div>
         <div style="display: flex; align-items: center; gap: 16px;">
             <span style="font-size: 14px; font-weight: 600; color: var(--text-muted);">Hi, {{ current_user.username }}!</span>
             <a href="/history" class="btn-outline" style="display: flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none;">
@@ -134,7 +187,6 @@
     </header>
 
     <main class="main-content" style="max-width: 1400px; margin: 0 auto; width: 100%;">
-        
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div class="status-badge" id="networkStatusBadge" style="padding: 6px 16px; font-size: 12px; display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px;">
@@ -152,9 +204,7 @@
         </div>
 
         <div class="gcs-layout">
-
             <div class="visual-stack">
-                
                 <div>
                     <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 12px; color: var(--text-dark);">Live Camera Feed</h3>
                     <div class="card" style="padding: 0; overflow: hidden; background: #0F172A; position: relative; border-radius: 16px; min-height: 480px; display: flex; flex-direction: column; box-shadow: var(--shadow-md);">
@@ -188,10 +238,22 @@
                     <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 12px; color: var(--text-dark);">GPS Telemetry Map</h3>
                     <div class="card" style="padding: 0; overflow: hidden; background: #0F172A; position: relative; border-radius: 16px; height: 300px; display: flex; flex-direction: column; box-shadow: var(--shadow-md);">
                         <div style="position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; z-index: 400;"> 
-                            <div style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); padding: 8px 16px; border-radius: 100px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
-                                <span style="color: white; font-size: 12px; font-weight: 800; letter-spacing: 0.05em;">RADAR GCS</span>
+                            
+                            <div style="display: flex; gap: 8px;">
+                                <div style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); padding: 8px 16px; border-radius: 100px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+                                    <span style="color: white; font-size: 12px; font-weight: 800; letter-spacing: 0.05em;">RADAR GCS</span>
+                                </div>
+                                
+                                <div id="hwDebugBadge" style="display: none; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); padding: 8px 16px; border-radius: 100px; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                                    <span style="color: #94A3B8; font-size: 10px; font-weight: 700;">TEMP:</span>
+                                    <span id="espTemp" style="color: #F59E0B; font-size: 12px; font-weight: 800;">-- °C</span>
+                                    <div style="width: 1px; height: 14px; background: rgba(255,255,255,0.2);"></div>
+                                    <span style="color: #94A3B8; font-size: 10px; font-weight: 700;">RAM:</span>
+                                    <span id="espRam" style="color: #10B981; font-size: 12px; font-weight: 800;">-- KB</span>
+                                </div>
                             </div>
+
                             <div style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); padding: 8px 16px; border-radius: 100px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
                                 <div style="display: flex; align-items: center; gap: 6px;">
                                     <span style="color: #94A3B8; font-size: 11px; font-weight: 700;">LAT</span>
@@ -204,6 +266,7 @@
                                 </div>
                             </div>
                         </div>
+                        
                         <div id="mapContainer" style="flex: 1; width: 100%; background: #1E293B; display: flex; align-items: center; justify-content: center;">
                             <div style="text-align: center; color: #64748B;">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; opacity: 0.5;"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
@@ -212,7 +275,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div class="stage-right" style="position: sticky; top: 24px;">
@@ -221,7 +283,6 @@
                         <div style="font-size: 10px; color: #94A3B8; font-weight: 800; letter-spacing: 0.1em; margin-bottom: 4px;">DURASI TERBANG</div>
                         <div id="patrolStopwatch" class="stopwatch-time" style="font-size: 28px;">00:00:00</div>
                     </div>
-                    
                     <h4 style="font-size: 16px; font-weight: 800; color: var(--text-dark); margin-bottom: 8px;">Kontrol Sesi Penerbangan</h4>
                     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Data objek akan dicatat ke sistem saat sesi aktif.</p>
                     <button id="btnSesiPatroli" class="btn-saas-primary w-100" style="font-size: 14px; padding: 14px;">
@@ -249,7 +310,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
@@ -289,110 +349,13 @@
                 </select>
             </div>
 
-            <div style="position: relative; z-index: 100;"> <button id="btnKonfirmasiMencatat" class="btn-saas-primary w-100" style="margin-top: 8px; z-index: 100;">Hubungkan Stream</button>
+            <div style="position: relative; z-index: 100;"> 
+                <button id="btnKonfirmasiMencatat" class="btn-saas-primary w-100" style="margin-top: 8px; z-index: 100;">Hubungkan Stream</button>
                 <button id="btnTutupModalIP" class="btn-close-modal">Batalkan</button>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    // SCRIPT UI UNTUK MODAL KAMERA (WITH FIX: FORCE PERMISSION)
-    document.addEventListener('DOMContentLoaded', function() {
-        const btnESP32 = document.getElementById('btnPilihESP32');
-        const btnWebcam = document.getElementById('btnPilihWebcam');
-        const areaESP32 = document.getElementById('areaKoneksiESP32');
-        const areaWebcam = document.getElementById('areaKoneksiWebcam');
-        const iconWebcam = document.getElementById('iconWebcam');
-        const selectDevice = document.getElementById('selectWebcamDevice');
-
-        window.activeSourceType = 'esp32';
-
-        btnESP32.addEventListener('click', () => {
-            window.activeSourceType = 'esp32';
-            btnESP32.classList.add('active');
-            btnWebcam.classList.remove('active');
-            
-            // Set Style Manual ESP32 Aktif
-            btnESP32.style.borderColor = 'var(--primary)';
-            btnESP32.style.background = 'var(--primary-soft)';
-            btnESP32.style.boxShadow = '0 8px 20px rgba(225, 29, 72, 0.15)';
-            
-            // Reset gaya Webcam
-            btnWebcam.style.borderColor = 'var(--border-color)';
-            btnWebcam.style.background = 'white';
-            btnWebcam.style.boxShadow = 'none';
-            iconWebcam.setAttribute('stroke', '#64748B');
-
-            areaESP32.style.display = 'block';
-            areaWebcam.style.display = 'none';
-        });
-
-        btnWebcam.addEventListener('click', async () => {
-            window.activeSourceType = 'webcam';
-            btnWebcam.classList.add('active');
-            btnESP32.classList.remove('active');
-            
-            // Set Style Manual (Cyan for Webcam Aktif)
-            btnWebcam.style.borderColor = '#0EA5E9';
-            btnWebcam.style.background = '#F0F9FF';
-            btnWebcam.style.boxShadow = '0 8px 20px rgba(14, 165, 233, 0.15)';
-            iconWebcam.setAttribute('stroke', '#0EA5E9');
-            
-            // Reset gaya ESP32
-            btnESP32.style.borderColor = 'var(--border-color)';
-            btnESP32.style.background = 'white';
-            btnESP32.style.boxShadow = 'none';
-
-            areaESP32.style.display = 'none';
-            areaWebcam.style.display = 'block';
-
-            // ===============================================
-            // [FIX] LOGIKA BRUTE FORCE CARI KAMERA (BYPASS BLOKIR)
-            // ===============================================
-            selectDevice.innerHTML = '<option value="" disabled selected>Meminta izin kamera...</option>';
-            
-            try {
-                // 1. Paksa browser minta izin dengan membuka stream kosong sebentar
-                const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                
-                // 2. Ambil daftar semua alat yang nyolok ke PC
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                
-                // 3. Matikan stream kosong tadi biar gak nyala terus lampu webcamnya
-                tempStream.getTracks().forEach(track => track.stop());
-
-                // 4. Saring cuma ambil yang jenisnya Kamera Video
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                
-                selectDevice.innerHTML = ''; // Kosongin tulisan loading
-                
-                if (videoDevices.length === 0) {
-                    selectDevice.innerHTML = '<option value="" disabled>Nggak ada kamera colok / terdeteksi!</option>';
-                    return;
-                }
-                
-                // 5. Looping buat nampilin nama kamera ke dalam Dropdown
-                videoDevices.forEach((device, index) => {
-                    const option = document.createElement('option');
-                    option.value = index; 
-                    // Tampilkan nama aslinya. Kalau browser blokir namanya, kasih nama default.
-                    option.text = device.label || `Kamera Misterius ${index + 1}`; 
-                    selectDevice.appendChild(option);
-                });
-
-            } catch (err) {
-                console.error("Izin Kamera Ditolak / Error:", err);
-                
-                // Kalau errornya karna ditolak, kasih pesan ke user
-                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    selectDevice.innerHTML = '<option value="" disabled>Akses Kamera Ditolak Browser!</option>';
-                    alert("Tolong izinkan akses kamera di pojok kiri atas (ikon gembok URL) biar bisa milih DroidCam.");
-                } else {
-                    selectDevice.innerHTML = '<option value="" disabled>Error sistem kamera.</option>';
-                }
-            }
-        });
-    });
-</script>
+<script src="{{ url_for('static', filename='js/dashboard_ui.js') }}"></script>
 {% endblock %}
