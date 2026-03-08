@@ -1,134 +1,299 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-    /* ==========================================
-       DOKUMENTASI LAYOUT (MODERN DOCS STYLE)
-       ========================================== */
-    .docs-layout { display: grid; grid-template-columns: 280px 1fr 240px; gap: 48px; max-width: 1440px; margin: 0 auto; padding: 40px 32px; min-height: 100vh; }
-
-    /* Sidebar Nav */
-    .docs-sidebar { position: sticky; top: 100px; height: calc(100vh - 120px); overflow-y: auto; padding-right: 20px; border-right: 1px solid var(--border-color); }
-    .side-group { margin-bottom: 32px; }
-    .side-title { font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
-    .side-link { display: block; padding: 8px 0; font-size: 14px; font-weight: 600; color: #475569; text-decoration: none; transition: 0.2s; }
-    .side-link:hover { color: var(--primary); }
-    .side-link.active { color: var(--primary); font-weight: 800; }
-
-    /* Main Content Area */
-    .docs-main { max-width: 800px; }
-    .docs-article h1 { font-size: 40px; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 16px; color: var(--text-dark); }
-    .docs-article h2 { font-size: 24px; font-weight: 800; margin: 48px 0 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
-    .docs-article p { font-size: 16px; color: #475569; line-height: 1.8; margin-bottom: 24px; }
-
-    /* Code Blocks ala image_315245.png */
-    pre { background: #0F172A; color: #F8FAFC; padding: 20px; border-radius: 12px; overflow-x: auto; margin-bottom: 24px; position: relative; border: 1px solid #1E293B; }
-    code { font-family: 'Fira Code', monospace; font-size: 14px; }
-    .cmd-line::before { content: "$ "; color: #64748B; }
-
-    /* Callouts / Alerts */
-    .callout { padding: 20px; border-radius: 12px; margin-bottom: 24px; display: flex; gap: 16px; align-items: flex-start; border: 1px solid transparent; }
-    .callout-info { background: #F0F9FF; border-color: #BAE6FD; color: #0369A1; }
-    .callout-warning { background: #FFFBEB; border-color: #FEF3C7; color: #92400E; }
-    .callout-icon { margin-top: 2px; }
-
-    /* Right On-This-Page Nav */
-    .on-page-nav { position: sticky; top: 100px; height: fit-content; }
-
-    @media screen and (max-width: 1024px) {
-        .docs-layout { grid-template-columns: 1fr; }
-        .docs-sidebar, .on-page-nav { display: none; }
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
 <div class="docs-layout">
+    
     <aside class="docs-sidebar">
+        <a href="/" class="btn-back-home">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Kembali ke Dashboard
+        </a>
+
         <div class="side-group">
-            <div class="side-title">Getting Started</div>
-            <a href="#intro" class="side-link active">Introduction</a>
-            <a href="#requirements" class="side-link">System Requirements</a>
-            <a href="#quickstart" class="side-link">Quickstart (1-Click)</a>
+            <div class="side-title">Pendahuluan</div>
+            <a href="#overview" class="side-link active">LacakTani Overview</a>
         </div>
+
         <div class="side-group">
-            <div class="side-title">Hardware Setup</div>
-            <a href="#esp32" class="side-link">ESP32-CAM Config</a>
-            <a href="#drone" class="side-link">Drone Assembly</a>
+            <div class="side-title">Arsitektur Sistem</div>
+            <a href="#topology" class="side-link">Topologi & Alur Data</a>
+            <a href="#hardware-rationale" class="side-link">Rasionalisasi Hardware</a>
+            <a href="#ai-rationale" class="side-link">Model AI & Tracking</a>
         </div>
+
         <div class="side-group">
-            <div class="side-title">Software Core</div>
-            <a href="#yolo" class="side-link">YOLOv5 Training</a>
-            <a href="#flask" class="side-link">Flask API Reference</a>
+            <div class="side-title">Integrasi Perangkat</div>
+            <a href="#wiring" class="side-link">Sirkuit Daya & Wiring</a>
+            <a href="#flashing" class="side-link">Native Flashing (C++)</a>
+        </div>
+
+        <div class="side-group">
+            <div class="side-title">Deployment GCS</div>
+            <a href="#requirements" class="side-link">Prasyarat Server</a>
+            <a href="#quick-setup" class="side-link">Setup Lingkungan (CLI)</a>
+        </div>
+
+        <div class="side-group">
+            <div class="side-title">Operasional</div>
+            <a href="#run-system" class="side-link">Panduan Eksekusi</a>
+            <a href="#troubleshooting" class="side-link">Troubleshooting Teknis</a>
         </div>
     </aside>
 
     <main class="docs-main">
         <article class="docs-article">
-            <h1 id="intro">Dokumentasi LacakTani.ai</h1>
-            <p>Selamat datang di panduan resmi LacakTani.ai. Proyek ini dirancang untuk mendeteksi fase pertumbuhan stroberi secara real-time menggunakan computer vision (YOLOv5) yang diintegrasikan dengan UAV (Drone).</p>
-
-            <div class="callout callout-info">
-                <div class="callout-icon">💡</div>
-                <div>LacakTani adalah proyek <b>Open Source</b>. Kamu bisa menemukan source code lengkap di GitHub <a href="https://github.com/agungxsoeltani" style="color: inherit; font-weight: 700;">@agungxsoeltani</a>.</div>
+            
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;" id="overview">
+                <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <h1 style="margin: 0;">Engineering Showcase</h1>
             </div>
 
-            <h2 id="requirements">System Requirements</h2>
-            <p>Sebelum memulai instalasi, pastikan lingkungan pengembangan kamu memenuhi kriteria berikut:</p>
-            <ul style="margin-bottom: 24px; padding-left: 20px; color: #475569;">
-                <li><b>Python 3.10+</b> (Wajib)</li>
-                <li><b>CUDA Toolkit</b> (Opsional, untuk akselerasi GPU)</li>
-                <li><b>ESP32-CAM</b> dengan firmware terbaru</li>
-                <li>RAM Minimal 8GB</li>
+            <div class="callout callout-info" style="font-style: italic;">
+                “Dokumen ini menguraikan secara mendalam anatomi internal dan keputusan rekayasa (Engineering Decisions) di balik LacakTani.ai, dirancang khusus untuk eksibisi Tugas Akhir Politeknik Negeri Jakarta.”
+            </div>
+
+            <p style="font-size: 18px; color: var(--text-dark);">
+                <strong>LacakTani.ai</strong> mendemonstrasikan implementasi komputasi tepi (<em>Edge Computing</em>) pada Wahana Udara Tanpa Awak (UAV). Sistem ini menggabungkan transmisi video M-JPEG berlatensi rendah, pelacakan satelit NMEA (GPS), dan pemrosesan <em>Artificial Intelligence</em> secara <em>real-time</em> menggunakan arsitektur PyTorch dan YOLOv5.
+            </p>
+            <p>Berbeda dengan sistem komersial yang bergantung pada pemrosesan awan, LacakTani beroperasi secara eksklusif di dalam <strong>Intranet Lokal (Local Area Network)</strong>. Arsitektur <em>Air-Gapped</em> ini menjamin tidak ada data visual perkebunan yang bocor ke pihak ketiga, sekaligus memangkas <em>latency</em> jaringan hingga ke tingkat milidetik (ms).</p>
+
+            <h2 id="topology">Topologi & Alur Data (Data Flow)</h2>
+            <p>Sistem ini mengadopsi topologi <strong>Asynchronous Client-Server</strong>. Dalam skenario ini, node perangkat keras pada UAV (ESP32-S3) bertindak murni sebagai <em>Emitter</em> (pemancar data buta), sementara Ground Control Station (Laptop Server) memikul seluruh beban komputasi operasi matriks tensor.</p>
+            
+            <div class="diagram-box" style="margin-bottom: 24px;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                <div style="margin-top: 12px; font-weight: 600;">[ Diagram Space: Asynchronous Hardware vs Software Inference Loop ]</div>
+            </div>
+
+            <p>Untuk mencegah terjadinya <em>Thread Blocking</em> (kondisi di mana video terhenti karena menunggu data satelit lambat), LacakTani memecah transmisi ESP32 menjadi <strong>arsitektur multi-port</strong>:</p>
+            <ul>
+                <li><strong>Port 81 (/stream):</strong> Didedikasikan 100% untuk memompa <em>frame</em> video M-JPEG mentah langsung ke <em>buffer</em> memori OpenCV di GCS.</li>
+                <li><strong>Port 80 (/control):</strong> <em>Listener</em> HTTP GET pasif yang menerima instruksi kalibrasi sensor dari antarmuka Web (Kecerahan, Kontras, Resolusi, Flip V/H).</li>
+                <li><strong>Port 82 (/telemetry):</strong> Memancarkan struktur data JSON terpadu (Unified Payload) yang mengkapsulasi koordinat Latitude/Longitude Ublox GPS, Suhu Die CPU ESP32, dan ketersediaan SRAM secara berkelanjutan.</li>
             </ul>
 
-            <h2 id="quickstart">Quickstart Installation</h2>
-            <p>Jalankan perintah berikut di terminal kamu untuk mengunduh dan menginstal seluruh dependensi secara otomatis:</p>
+            <h2 id="hardware-rationale">Rasionalisasi Perangkat Keras</h2>
+            <p>Selama fase purwarupa, mikrokontroler standar terbukti rentan terhadap tekanan lingkungan (getaran, panas, dan fluktuasi voltase) di udara. LacakTani berevolusi menggunakan komponen kelas antusias untuk mendobrak limitasi <em>bandwidth</em> konvensional.</p>
             
-            <pre><code class="cmd-line">git clone https://github.com/agungxsoeltani/lacaktani.git</code>
-<code class="cmd-line">cd lacaktani</code>
-<code class="cmd-line">pip install -r requirements.txt</code>
-<code class="cmd-line">python app.py</code></pre>
+            <ul>
+                <li><strong>Mikrokontroler (ESP32-S3):</strong> Menggunakan prosesor <em>dual-core</em> Xtensa LX7 (240MHz) yang terintegrasi dengan instruksi vektor akselerasi neural. Kapasitas <em>Octal SPI (OPI) PSRAM</em> yang masif di S3 sangat esensial untuk membuffer matriks gambar resolusi tinggi. Fitur <strong>Native USB OTG/CDC</strong> memfasilitasi pemrograman ulang (<em>flashing</em>) berkecepatan tinggi via kabel Type-C tanpa bergantung pada sirkuit konverter eksternal (FTDI).</li>
+                <li><strong>Modul Optik (OV3660 - 3MP):</strong> Secara signifikan mengungguli sensor usang OV2640. Modul ini menawarkan sensitivitas cahaya rendah (<em>low-light performance</em>) yang lebih superior dan <em>Field of View</em> (FOV) diagonal sebesar 120°. Kepadatan piksel 3 Megapixel memastikan detail tekstur dan warna stroberi tetap tajam meski terkena guncangan mekanis (<em>motion blur</em>) saat drone bermanuver, mengamankan tingkat akurasi (Confidence) AI di atas 80%.</li>
+                <li><strong>Telemetri Spasial (NEO-6M GPS):</strong> Mengubah identitas sistem dari sekadar "Penghitung Buah Visual" menjadi "Pemeta Spasial Geografis". Modul ini menyuntikkan data lokasi absolut (Lat/Lng) pada milidetik yang sama saat model mendeteksi fase kematangan stroberi, memungkinkan GCS untuk merajut peta titik kordinat panen di kebun.</li>
+            </ul>
 
+            <h2 id="ai-rationale">Arsitektur AI & Multi-Object Tracking</h2>
+            <p>Otak utama LacakTani bersandar pada arsitektur <strong>YOLOv5 (You Only Look Once, versi 5)</strong>. <em>Single-Shot Detector</em> ini dipilih melalui kompromi ketat antara Presisi Rata-Rata (mAP) dan kecepatan inferensi tepi. Memaksa menggunakan YOLOv8/v11 pada perangkat keras laptop konsumen akan menghancurkan <em>Frame Per Second</em> (FPS) video udara.</p>
+            
+            <h3>Pencegahan Double-Counting (ByteTrack)</h3>
+            <p>Masalah klasik dalam inspeksi udara adalah penghitungan ganda (<em>Double Counting</em>) ketika drone melakukan <em>hovering</em> (melayang diam) di atas satu objek yang sama. Untuk mengatasi anomali ini, LacakTani mengintegrasikan algoritma <strong>ByteTrack (Multi-Object Tracking)</strong> di atas lapisan YOLO.</p>
+            <p>ByteTrack memberikan ID pelacakan unik (misal: <span class="inline-code">#Stroberi_14</span>) kepada setiap kotak pembatas (Bounding Box). Selama objek dengan ID yang sama masih berada dalam <em>frame</em> kamera, sistem hanya akan menghitungnya sebagai "1 objek", tidak peduli berapa detik drone melayang di atasnya.</p>
+
+            <h3>Pelatihan Ulang (Retraining) Domain Khusus</h3>
+            <p>Kondisi iluminasi dan morfologi stroberi dapat bervariasi antar perkebunan. Model dapat dilatih ulang (<em>fine-tuning</em>) secara lokal menggunakan repositori PyTorch standar. Disarankan untuk menggunakan resolusi <em>input</em> 640px agar deteksi objek kecil (buah dari ketinggian udara) tidak terkompresi menjadi noise piksel:</p>
+            
+            <div class="qs-card" style="margin: 16px 0;">
+                <div class="qs-content-area" style="padding: 16px;">
+                    <div class="qs-command" style="margin: 0;"><span>$</span> python train.py --img 640 --batch 16 --epochs 150 --data dataset_stroberi.yaml --weights yolov5s.pt</div>
+                </div>
+            </div>
+            
+            <p>File bobot final (<span class="inline-code">best.pt</span>) yang dihasilkan dapat langsung diunggah (<em>Drag & Drop</em>) ke dalam antarmuka UI Dashboard tanpa memerlukan kalibrasi kode secara manual atau <em>restart</em> server (Hot-Swapping).</p>
+
+            <h2 id="wiring">Sirkuit Daya Terisolasi & Wiring</h2>
+            <p>Resonansi frekuensi tinggi dan getaran udara dari motor baling-baling drone sangat fatal bagi elektronik presisi. <strong>Penggunaan <em>breadboard</em> atau kabel jumper longgar dilarang keras.</strong> Seluruh sambungan sirkuit harus disolder mati atau menggunakan <em>pin header</em> dengan pengunci.</p>
+            
             <div class="callout callout-warning">
-                <div class="callout-icon">⚠️</div>
-                <div>Jika kamu menggunakan Windows, sangat disarankan menjalankan sistem di dalam <b>WSL2</b> atau virtual environment (venv) untuk menghindari konflik pustaka PyTorch.</div>
+                <div class="callout-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </div>
+                <div><strong>Mitigasi Brownout Detector:</strong> Motor <em>Brushless DC (BLDC)</em> pada drone menyedot ratusan Ampere arus, menciptakan lonjakan tegangan (<em>voltage ripples</em>) yang liar. Mengambil daya 5V langsung dari <em>PDB (Power Distribution Board)</em> drone akan memicu ESP32 mereset dirinya tiada henti (Brownout). LacakTani secara ketat menggunakan Baterai 18650 High-Drain (Sony VTC / Samsung INR) independen via Modul UPS untuk menciptakan <strong>Loop Catu Daya 5V/2A yang Terisolasi Sepenuhnya</strong>.</div>
             </div>
 
-            <h2 id="esp32">Hardware Configuration</h2>
-            <p>Modul ESP32-CAM harus dikonfigurasi untuk memancarkan stream HTTP di alamat lokal. Pastikan file <code>config.h</code> di Arduino IDE sudah diset ke mode <b>VGA (640x480)</b> agar mendapatkan FPS maksimal.</p>
+            <p><strong>Topologi Komunikasi NMEA GPS:</strong></p>
+            <ul>
+                <li><strong>VCC & GND:</strong> Sambungkan VCC GPS ke <strong>3.3V ESP32</strong> (AWAS: Jangan ke 5V atau modul satelit akan terbakar). GND disatukan untuk meratakan referensi tegangan (<em>common ground</em>).</li>
+                <li><strong>TX (Transmit):</strong> Dihubungkan ke <strong>GPIO 18</strong> (RX1/UART) pada ESP32. Pin ini adalah nadi utama tempat koordinat bujur/lintang mengalir pada kecepatan 9600 <em>baudrate</em>.</li>
+                <li><strong>RX (Receive):</strong> Dihubungkan ke <strong>GPIO 17</strong> (TX1/UART) pada ESP32.</li>
+            </ul>
 
-            <pre><code>// Arduino IDE Setup
-#define CAMERA_MODEL_AI_THINKER
-#define FRAMESIZE_VGA  // Set ke VGA untuk FPS stabil</code></pre>
+            <h2 id="flashing">Native Flashing via C++</h2>
+            <p>Prosedur injeksi <em>firmware</em> mengandalkan pengontrol USB bawaan (<em>Native USB Controller</em>). Sambungkan kabel data Type-C langsung dari stasiun PC ke antarmuka yang berlabel "USB" pada modul ESP32-S3 Anda (bukan port "COM/UART").</p>
+            
+            <h3>Konfigurasi Kritis Arduino IDE</h3>
+            <p>Kompilasi dengan parameter yang tidak selaras akan memicu kerusakan segmentasi memori (<em>Memory Overflow</em>) atau <em>Boot-Loop</em>. Terapkan parameter pada menu <strong>Tools</strong> secara absolut:</p>
+            <ul>
+                <li><strong>Board:</strong> ESP32S3 Dev Module</li>
+                <li><strong>USB Mode:</strong> <span class="inline-code">Hardware CDC and JTAG</span> (Sangat Kritis: Jika diabaikan, kemampuan komunikasi Serial ke PC akan mati total sesaat setelah proses <em>flashing</em> pertama).</li>
+                <li><strong>PSRAM:</strong> <span class="inline-code">OPI PSRAM</span> (Instruksi wajib untuk mengalokasikan ruang memori bagi buffer tangkapan sensor OV3660).</li>
+                <li><strong>Partition Scheme:</strong> <span class="inline-code">16MB Flash (3MB APP/9.9MB FATFS)</span>.</li>
+            </ul>
+
+            <div class="callout callout-info" style="margin-top: 16px;">
+                <div class="callout-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </div>
+                <div><strong>Isu Hak Akses Port Linux:</strong> Sistem operasi Debian/Ubuntu memblokir akses tulis ke antarmuka serial (umumnya <span class="inline-code">/dev/ttyACM0</span>). Eksekusi <span class="inline-code">sudo usermod -a -G dialout $USER</span> dan <em>Reboot</em> PC untuk memberikan otorisasi kepada sistem.</div>
+            </div>
+
+            <h2 id="requirements">Prasyarat GCS Server</h2>
+            <p>Karena arsitektur klien (UAV) dirancang sangat ringan, Ground Control Station (Laptop) dituntut memiliki daya komputasi tinggi untuk menyelesaikan operasi perkalian matriks dalam hitungan milidetik.</p>
+            
+            <ul>
+                <li><strong>Sistem Operasi:</strong> Debian 12 (Bookworm) / Ubuntu 20.04 LTS / Windows 10 dengan subsistem WSL2.</li>
+                <li><strong>Prosesor (CPU):</strong> Intel Core i5 Generasi ke-8 / AMD Ryzen 5 ke atas.</li>
+                <li><strong>Memori RAM:</strong> Minimum 8 GB (Direkomendasikan 16 GB Dual-Channel).</li>
+                <li><strong>Koprocesor Grafis (GPU) - Wajib:</strong> Minimal NVIDIA GTX 1650 (4GB VRAM). Namun, perangkat <strong>NVIDIA RTX 3060 (6GB VRAM) dengan instalasi CUDA Toolkit 11.8/12.x</strong> sangat direkomendasikan demi mencapai target pemrosesan waktu nyata (<em>Zero-Latency Tracking</em>).</li>
+            </ul>
+
+            <h2 id="quick-setup">Setup Lingkungan Python (CLI)</h2>
+            <p>Sistem operasi modern (terutama distro Linux turunan Debian) menetapkan perlindungan PEP 668 untuk mencegah konflik paket sistem (<em>externally-managed-environment</em>). Oleh karena itu, isolasi <strong>Virtual Environment (venv) mutlak diwajibkan</strong> sebelum merakit mesin <em>backend</em> LacakTani.</p>
+
+            <div class="qs-card">
+                <div class="qs-topbar">
+                    <div class="qs-mac-dots">
+                        <span class="dot-red"></span><span class="dot-yel"></span><span class="dot-grn"></span>
+                    </div>
+                    <div class="qs-os-tabs">
+                        <button class="qs-tab active" onclick="switchQS('linux', this)">Linux / Debian / WSL</button>
+                        <button class="qs-tab" onclick="switchQS('windows', this)">Windows (PowerShell)</button>
+                    </div>
+                </div>
+                <div class="qs-content-area">
+                    <div id="qs-linux" class="qs-pane active">
+                        <div class="qs-comment"># 1. Kloning repositori dan inisialisasi lingkungan virtual terisolasi</div>
+                        <div class="qs-command"><span>$</span> git clone https://github.com/lacaktani-org/gateway.git</div>
+                        <div class="qs-command"><span>$</span> cd gateway && python3 -m venv venv</div>
+                        <div class="qs-command"><span>$</span> source venv/bin/activate</div>
+                        <div class="qs-comment" style="margin-top: 12px;"># 2. Instal pustaka Neural Network Tensor (Sesuaikan kode cu118 dengan versi driver lokal Anda)</div>
+                        <div class="qs-command"><span>$</span> pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118</div>
+                        <div class="qs-comment" style="margin-top: 12px;"># 3. Instal modul Visi Komputer (OpenCV) dan Server Asinkron (Flask)</div>
+                        <div class="qs-command"><span>$</span> pip install -r requirements.txt</div>
+                    </div>
+                    <div id="qs-windows" class="qs-pane">
+                        <div class="qs-comment">REM 1. Kloning repositori dan inisialisasi lingkungan virtual terisolasi</div>
+                        <div class="qs-command"><span>></span> git clone https://github.com/lacaktani-org/gateway.git</div>
+                        <div class="qs-command"><span>></span> cd gateway</div>
+                        <div class="qs-command"><span>></span> python -m venv venv</div>
+                        <div class="qs-command"><span>></span> venv\Scripts\activate</div>
+                        <div class="qs-comment" style="margin-top: 12px;">REM 2. Instal pustaka Neural Network Tensor (Sesuaikan kode cu118 dengan versi driver lokal Anda)</div>
+                        <div class="qs-command"><span>></span> pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118</div>
+                        <div class="qs-comment" style="margin-top: 12px;">REM 3. Instal modul Visi Komputer (OpenCV) dan Server Asinkron (Flask)</div>
+                        <div class="qs-command"><span>></span> pip install -r requirements.txt</div>
+                    </div>
+                    <button class="qs-btn-copy" onclick="copyQS()" title="Salin Kode">
+                        <svg id="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <h2 id="run-system">Panduan Eksekusi (Field Operations)</h2>
+            <ol>
+                <li>Bangun jaringan area lokal (LAN) mandiri di tengah lapangan perkebunan menggunakan <em>Dedicated Router Intranet</em> atau <em>Mobile Hotspot</em> kelas atas. Pastikan UAV dan GCS terhubung ke SSID yang sama.</li>
+                <li>Dari terminal GCS, pastikan prefix <span class="inline-code">(venv)</span> telah muncul, kemudian nyalakan mesin peladen utama:
+                    <div class="qs-card" style="margin: 12px 0;">
+                        <div class="qs-content-area" style="padding: 16px;"><div class="qs-command" style="margin: 0;"><span>$</span> python app.py</div></div>
+                    </div>
+                </li>
+                <li>Jika terminal merespons dengan <span class="inline-code">Running on http://127.0.0.1:5000</span>, buka URL tersebut pada peramban web modern (disarankan Google Chrome).</li>
+                <li>Pada antarmuka UI, buka modal <strong>Konek Kamera</strong>. Eksekusi fitur <strong>Auto Scan Network</strong> atau ketikkan IP lokal ESP32 Anda secara manual (Contoh: <span class="inline-code">192.168.1.15</span>), lalu klik Hubungkan. Model YOLO akan otomatis dimuat ke dalam VRAM GPU dan siap mengekstraksi informasi visual.</li>
+            </ol>
+
+            <h2 id="troubleshooting">Troubleshooting Ops Lapangan</h2>
+            <p>Dalam rekayasa sistem robotika, 90% anomali dan kegagalan pada fase penerapan lapangan (<em>field deployment</em>) berakar dari fisika perangkat keras (stabilitas elektronika dan frekuensi radio), bukan pada cacat perangkat lunak.</p>
+
+            <div class="callout callout-danger" style="flex-direction: column; gap: 8px;">
+                <strong style="display: flex; align-items: center; gap: 8px; font-size: 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Kematian Sistem Tiba-tiba: "Brownout detector was triggered"</strong>
+                <p style="margin: 0;"><strong>Log Signature:</strong> ESP32 masuk ke mode <em>infinite restart loop</em>. Kamera gagal menginisiasi I2C.<br>
+                <strong>Akar Masalah:</strong> Sensor optik OV3660 dan pemancar Wi-Fi radio terpadu (RF) menyedot Arus Ekstrem sesaat (<em>Inrush Current</em>) ketika modul baru saja dialiri daya. Modul regulator tegangan Anda gagal mengimbangi kebutuhan arus tersebut.<br>
+                <strong>Resolusi Sistem:</strong> Ganti sel baterai kimia Li-Ion <strong>High Drain</strong> dengan rating <em>Discharge Current</em> minimal 10 Ampere (Contoh: Sony VTC4/VTC6, Samsung 25R/30Q). Pastikan juga soket fleksibel kamera menancap lurus dan terpasang kokoh.</p>
+            </div>
+
+            <div class="callout callout-danger" style="flex-direction: column; gap: 8px;">
+                <strong style="display: flex; align-items: center; gap: 8px; font-size: 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg> Crashing Mesin AI: "CUDA Out of Memory (OOM)"</strong>
+                <p style="margin: 0;"><strong>Log Signature:</strong> Skrip Python seketika terhenti, melemparkan eksepsi terkait kesalahan alokasi memori PyTorch.<br>
+                <strong>Akar Masalah:</strong> Pipa pemrosesan GCS berusaha menjejalkan gambar berdimensi terlampau besar ke dalam kapasitas VRAM (Video RAM) GPU yang terbatas.<br>
+                <strong>Resolusi Sistem:</strong> Buka menu pengaturan (Settings) pada Dashboard dan paksa resolusi kamera turun ke tingkat <strong>VGA (640x480)</strong> atau <strong>CIF</strong>. Resolusi tinggi diperuntukkan bagi laptop workstation dengan VRAM di atas 8GB.</p>
+            </div>
+
+            <div class="callout callout-warning" style="flex-direction: column; gap: 8px;">
+                <strong style="display: flex; align-items: center; gap: 8px; font-size: 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Telemetri Radar Menolak Koordinat (NO FIX)</strong>
+                <p style="margin: 0;"><strong>Log Signature:</strong> Teks Lat/Lng membeku pada label abu-abu `NO FIX` meskipun kabel telah terhubung sempurna.<br>
+                <strong>Akar Masalah:</strong> Penerima GPS (Receiver) membutuhkan manuver pencarian satelit dari nol (<em>Cold Start</em>).<br>
+                <strong>Resolusi Sistem:</strong> Bawa UAV ke area luar ruangan yang lapang (<em>Clear Sky View</em>). Jauhkan modul GPS dari antena WiFi. Biarkan modul menyala selama <strong>5 hingga 15 menit</strong>, hingga lampu LED biru berkedip stabil setiap 1 detik sebagai penanda <em>3D Fix</em>.</p>
+            </div>
+
+            <div class="callout callout-warning" style="flex-direction: column; gap: 8px;">
+                <strong style="display: flex; align-items: center; gap: 8px; font-size: 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Distorsi Video & Lag Berlebih: "overread 8"</strong>
+                <p style="margin: 0;"><strong>Log Signature:</strong> Peringatan <span class="inline-code">[mjpeg @ ...] overread 8</span> membanjiri terminal; video patah-patah atau muncul artefak.<br>
+                <strong>Akar Masalah:</strong> Pipa transmisi TCP/IP merobek sebagian potongan <em>byte</em> gambar M-JPEG karena antena jaringan kewalahan menangani kebisingan spektrum (<em>noise interference</em>) 2.4GHz di lapangan terbuka.<br>
+                <strong>Resolusi Sistem:</strong> Gunakan <em>Dedicated Portable Router</em> dengan antena eksternal. Kompensasi instan adalah menurunkan ukuran <em>frame</em> kamera ke level <strong>CIF (400x296)</strong>.</p>
+            </div>
 
         </article>
     </main>
 
     <aside class="on-page-nav">
-        <div class="side-title">On This Page</div>
-        <a href="#intro" class="side-link">Introduction</a>
-        <a href="#requirements" class="side-link">Requirements</a>
-        <a href="#quickstart" class="side-link">Quickstart</a>
-        <a href="#esp32" class="side-link">Hardware Config</a>
+        <div class="side-title">Pada Halaman Ini</div>
+        <a href="#overview" class="side-link active">LacakTani Overview</a>
+        <a href="#topology" class="side-link">Topologi & Alur Data</a>
+        <a href="#hardware-rationale" class="side-link">Rasionalisasi Hardware</a>
+        <a href="#ai-rationale" class="side-link">Model AI & Tracking</a>
+        <a href="#wiring" class="side-link">Sirkuit Daya & Wiring</a>
+        <a href="#flashing" class="side-link">Native Flashing (C++)</a>
+        <a href="#requirements" class="side-link">Prasyarat GCS Server</a>
+        <a href="#quick-setup" class="side-link">Setup Lingkungan</a>
+        <a href="#run-system" class="side-link">Panduan Eksekusi</a>
+        <a href="#troubleshooting" class="side-link">Troubleshooting Teknis</a>
     </aside>
+
 </div>
 
 <script>
-    // Simple script to highlight active menu on scroll
+    // Terminal Tab Logic
+    let currentQS = 'qs-linux';
+    function switchQS(os, btnElement) {
+        document.querySelectorAll('.qs-tab').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+        document.querySelectorAll('.qs-pane').forEach(pane => pane.classList.remove('active'));
+        document.getElementById('qs-' + os).classList.add('active');
+        currentQS = 'qs-' + os;
+    }
+
+    // Copy to Clipboard Logic
+    function copyQS() {
+        const activePane = document.getElementById(currentQS);
+        let codeToCopy = "";
+        const commands = activePane.querySelectorAll('.qs-command');
+        commands.forEach(cmd => {
+            let text = cmd.innerText.replace(/^\$\s*/, '').replace(/^>\s*/, '').replace(/^\(venv\)\s*\$\s*/, '').replace(/^\(venv\)\s*>\s*/, '');
+            codeToCopy += text + "\n";
+        });
+        navigator.clipboard.writeText(codeToCopy.trim()).then(() => {
+            const icon = document.getElementById('copyIcon');
+            icon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+            icon.setAttribute('stroke', '#10B981');
+            setTimeout(() => {
+                icon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+                icon.setAttribute('stroke', 'currentColor');
+            }, 2000);
+        });
+    }
+
+    // ScrollSpy Logic for Sidebars
     window.addEventListener('DOMContentLoaded', () => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                const id = entry.target.getAttribute('id');
-                const link = document.querySelector(`.side-link[href="#${id}"]`);
-                if (entry.intersectionRatio > 0) {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
                     document.querySelectorAll('.side-link').forEach(l => l.classList.remove('active'));
-                    if(link) link.classList.add('active');
+                    document.querySelectorAll(`.side-link[href="#${id}"]`).forEach(link => link.classList.add('active'));
                 }
             });
-        });
+        }, { rootMargin: '-10% 0px -80% 0px' });
 
-        document.querySelectorAll('h1, h2').forEach((section) => {
-            observer.observe(section);
-        });
+        document.querySelectorAll('h2[id], div[id="overview"]').forEach((section) => { observer.observe(section); });
     });
 </script>
 {% endblock %}

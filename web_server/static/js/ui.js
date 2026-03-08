@@ -347,3 +347,33 @@ window.saveCurrentAsPreset = async () => {
     renderUserPresets();
     syncSettingLock(); 
 });
+function updateNavClock() {
+    const clockValueEl = document.getElementById('clockValue');
+    const timeGreetingEl = document.getElementById('timeGreeting'); // Cuma nargetin kata salamnya aja
+    
+    if (!clockValueEl || !timeGreetingEl) return;
+
+    const now = new Date();
+    const hours = now.getHours();
+    
+    // 1. Tentukan Salam dinamis
+    let greeting = "Selamat Malam";
+    if (hours >= 5 && hours < 11) greeting = "Selamat Pagi";
+    else if (hours >= 11 && hours < 14) greeting = "Selamat Siang";
+    else if (hours >= 14 && hours < 18) greeting = "Selamat Sore";
+
+    // 2. Tembak kata salamnya ke HTML
+    timeGreetingEl.textContent = greeting;
+
+    // 3. Update Jam Digital
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    clockValueEl.textContent = `${h}:${m}:${s} WIB`;
+}
+
+// Inisialisasi
+document.addEventListener('DOMContentLoaded', () => {
+    updateNavClock();
+    setInterval(updateNavClock, 1000);
+});

@@ -13,15 +13,27 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/api/register', methods=['POST'])
 def register():
     data = request.json
+    nama_lengkap = data.get('nama_lengkap') # Nangkep dari JS
+    email = data.get('email')               # Nangkep dari JS
     username = data.get('username')
     password = data.get('password')
     
+    # Validasi: Cek apakah username atau email udah dipake orang lain
     if User.query.filter_by(username=username).first():
         return jsonify({'status': 'error', 'message': 'Username sudah terpakai!'})
+    if User.query.filter_by(email=email).first():
+        return jsonify({'status': 'error', 'message': 'Email sudah terdaftar!'})
         
-    new_user = User(username=username, password=generate_password_hash(password, method='pbkdf2:sha256'))
+    # Kalau aman, masukin semua data ke database
+    new_user = User(
+        nama_lengkap=nama_lengkap,
+        email=email,
+        username=username, 
+        password=generate_password_hash(password, method='pbkdf2:sha256')
+    )
     db.session.add(new_user)
     db.session.commit()
+    
     return jsonify({'status': 'success', 'message': 'Akun berhasil dibuat! Silakan login.'})
 
 @auth_bp.route('/api/login', methods=['POST'])

@@ -6,10 +6,15 @@ from datetime import datetime
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
+    
+    nama_lengkap = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    # --------------------------------------
+
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     
-    # Pengaturan Kamera
+    # Pengaturan Kamera (Bawahnya biarin persis kayak ori lu)
     cam_res = db.Column(db.String(10), default="6")
     cam_bright = db.Column(db.Integer, default=0)
     cam_contrast = db.Column(db.Integer, default=0)
@@ -22,8 +27,7 @@ class User(UserMixin, db.Model):
     cam_hmirror = db.Column(db.Integer, default=0)
     cam_awb = db.Column(db.Integer, default=1) 
     cam_aec = db.Column(db.Integer, default=1) 
-    cam_lenc = db.Column(db.Integer, default=1) 
-
+    cam_lenc = db.Column(db.Integer, default=1)
 # ==========================================
 # TABEL BARU UNTUK SESI PATROLI & BYTETRACK
 # ==========================================

@@ -69,8 +69,10 @@ export function initAuth() {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
+                            nama_lengkap: document.getElementById('regNama').value, // Narik data nama
+                            email: document.getElementById('regEmail').value,       // Narik data email
                             username: document.getElementById('regUser').value, 
-                            password: document.getElementById('regPass').value 
+                            password: document.getElementById('regPass').value
                         })
                     });
                     const data = await res.json();

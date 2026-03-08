@@ -69,6 +69,9 @@ function updateSignalBars(rssi) {
     }
 }
 
+// Tambahkan flag global ini di luar fungsi agar bisa diakses semua bagian
+window.isCameraConnected = false;
+
 // ==========================================
 // 1. INISIALISASI STREAM KAMERA 
 // ==========================================
@@ -138,6 +141,22 @@ export function initCameraStream() {
                 const data = await response.json();
 
                 if (data.status === 'success') {
+                    // --- UPDATE BARU: KAMERA BERHASIL KONEK, NYALAKAN TOMBOL ---
+                    window.isCameraConnected = true;
+                    const btnSesi = document.getElementById('btnSesiPatroli');
+                    const btnTestAI = document.getElementById('btnToggleAI');
+                    if (btnSesi) {
+                        btnSesi.style.opacity = "1";
+                        btnSesi.style.cursor = "pointer";
+                        btnSesi.style.filter = "none";
+                    }
+                    if (btnTestAI) {
+                        btnTestAI.style.opacity = "1";
+                        btnTestAI.style.cursor = "pointer";
+                        btnTestAI.style.filter = "none";
+                    }
+                    // -----------------------------------------------------------
+
                     if(modalIP) modalIP.classList.remove('active');
                     if (btnBukaModalIP) btnBukaModalIP.innerHTML = `Terkoneksi: <b>${displayText}</b>`;
                     if (dashStatusText) dashStatusText.textContent = displayText;
@@ -172,27 +191,47 @@ export function initCameraStream() {
                                     else { resLabel.textContent = resMap[activeRes] || activeRes || '---'; }
                                 }
 
-                                // --- PERBAIKAN LOGIKA SUHU & RAM (SESUAIKAN DENGAN WARNA PUTIH) ---
                                 const hwBadge = document.getElementById('hwDebugBadge');
                                 const hwText = document.getElementById('hwDebugText');
                                 if (hwBadge && hwText) {
                                     if (window.activeSourceType === 'esp32' && stats.free_ram !== null && stats.temp !== null) {
-                                        // Menampilkan badge jika data tersedia
                                         hwBadge.style.display = 'flex';
-                                        
-                                        // Mengonversi RAM dari Bytes ke KB
                                         const ramKB = (stats.free_ram / 1024).toFixed(1);
-                                        
-                                        // Menyatukan format teks Suhu dan RAM
                                         hwText.textContent = `${stats.temp}°C | ${ramKB} KB`;
-                                        
-                                        // Menerapkan warna putih sebagai standar, dan merah HANYA jika overheat
                                         hwText.style.color = (stats.temp > 65) ? '#E11D48' : 'white';
                                     } else {
                                         hwBadge.style.display = 'none';
                                     }
                                 }
-                                // --- END PERBAIKAN LOGIKA ---
+
+                                const satBadge = document.getElementById('gpsSatBadge');
+                                const latText = document.getElementById('gpsLatText');
+                                const lngText = document.getElementById('gpsLngText');
+
+                                if (satBadge && latText && lngText) {
+                                    satBadge.innerText = `🛰️ ${stats.gps_sat || 0} SAT`;
+                                    if (stats.gps_sat < 4) {
+                                        satBadge.style.color = '#FBBF24'; 
+                                        satBadge.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+                                        satBadge.style.background = 'rgba(251, 191, 36, 0.15)';
+                                    } else {
+                                        satBadge.style.color = '#34D399'; 
+                                        satBadge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                                        satBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+                                    }
+
+                                    if (stats.gps_lat && stats.gps_lng) {
+                                        latText.innerText = `Lat: ${stats.gps_lat.toFixed(6)}`;
+                                        lngText.innerText = `Lng: ${stats.gps_lng.toFixed(6)}`;
+                                        latText.style.color = '#F8FAFC';
+                                        lngText.style.color = '#F8FAFC';
+                                    } else {
+                                        latText.innerText = `Lat: NO FIX`;
+                                        lngText.innerText = `Lng: NO FIX`;
+                                        latText.style.color = '#94A3B8';
+                                        lngText.style.color = '#94A3B8';
+                                    }
+                                }
                             }
                         } catch (e) { }
                     }, 1000);
@@ -217,6 +256,13 @@ export function initAIControls() {
     let isAIActive = false;
     window.isSessionActive = false;
 
+    // Redupkan tombol saat web pertama kali dibuka
+    if (btnToggleAI && !window.isCameraConnected) {
+        btnToggleAI.style.opacity = "0.5";
+        btnToggleAI.style.cursor = "not-allowed";
+        btnToggleAI.style.filter = "grayscale(100%)";
+    }
+
     window.matikanAI = async () => {
         isAIActive = false;
         if (btnToggleAI) { 
@@ -227,8 +273,8 @@ export function initAIControls() {
         if (aiStatusText) aiStatusText.textContent = "AI STANDBY (OFF)";
         
         await fetch('/api/toggle_ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: false }) });
-        
         await fetch('/api/reset_stats', { method: 'POST' });
+        
         document.getElementById('statMatang').textContent = "0";
         document.getElementById('statMentah').textContent = "0";
         document.getElementById('statBerbunga').textContent = "0";
@@ -251,6 +297,17 @@ export function initAIControls() {
 
     if (btnToggleAI) {
         btnToggleAI.addEventListener('click', () => {
+            // CEGAH KLIK KALAU KAMERA MATI
+            if (!window.isCameraConnected) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sinyal Video Kosong',
+                    text: 'Tidak bisa menguji AI tanpa aliran video. Silakan Konek Kamera terlebih dahulu.',
+                    confirmButtonColor: '#0EA5E9'
+                });
+                return;
+            }
+
             if (window.isSessionActive) { 
                 Swal.fire({ icon: 'warning', title: 'Sesi Aktif', text: 'AI tidak bisa dimatikan manual saat Sesi Patroli berjalan!' }); 
                 return; 
@@ -261,7 +318,7 @@ export function initAIControls() {
 }
 
 // ==========================================
-// 3. INISIALISASI SESI PATROLI (DENGAN CONFIRMATION MODAL)
+// 3. INISIALISASI SESI PATROLI 
 // ==========================================
 export function initPatrolSession() {
     const btnSesiPatroli = document.getElementById('btnSesiPatroli');
@@ -269,10 +326,17 @@ export function initPatrolSession() {
     let patrolTimer; 
     let patrolSeconds = 0;
 
+    // Redupkan tombol patroli saat web pertama kali dibuka
+    if (btnSesiPatroli && !window.isCameraConnected) {
+        btnSesiPatroli.style.opacity = "0.5";
+        btnSesiPatroli.style.cursor = "not-allowed";
+        btnSesiPatroli.style.filter = "grayscale(100%)";
+    }
+
     function startStopwatch() {
         if (!swDisplay) return;
         patrolSeconds = 0; 
-        swDisplay.style.color = "#10B981"; // Hijau saat jalan
+        swDisplay.style.color = "#10B981"; 
         if (patrolTimer) clearInterval(patrolTimer);
         patrolTimer = setInterval(() => {
             patrolSeconds++;
@@ -285,13 +349,24 @@ export function initPatrolSession() {
 
     function stopStopwatch() {
         clearInterval(patrolTimer);
-        if (swDisplay) swDisplay.style.color = "#94A3B8"; // Kembali abu-abu saat berhenti
+        if (swDisplay) swDisplay.style.color = "#10B981"; // Tetap neon hijau walau berhenti
     }
 
     if (btnSesiPatroli) {
         btnSesiPatroli.addEventListener('click', () => {
+            // CEGAH KLIK KALAU KAMERA MATI
+            if (!window.isCameraConnected) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Akses Ditolak',
+                    text: 'Sistem tidak dapat memulai perekaman laporan panen tanpa sinyal video. Hubungkan kamera terlebih dahulu.',
+                    confirmButtonColor: '#E11D48'
+                });
+                if(window.addLogToConsole) window.addLogToConsole("[SYSTEM] Gagal memulai sesi: Kamera Offline.");
+                return;
+            }
+
             if (!window.isSessionActive) {
-                // UI BARU: Modal Konfirmasi Premium sebelum memulai sesi
                 Swal.fire({
                     title: 'Mulai Sesi Patroli?',
                     html: `
@@ -309,45 +384,34 @@ export function initPatrolSession() {
                     `,
                     icon: 'info',
                     showCancelButton: true,
-                    confirmButtonColor: '#E11D48', // Merah khas LacakTani
+                    confirmButtonColor: '#E11D48',
                     cancelButtonColor: '#94A3B8',
                     confirmButtonText: 'Ya, Mulai Terbang',
                     cancelButtonText: 'Batal',
-                    customClass: {
-                        popup: 'swal-premium-popup',
-                        title: 'swal-premium-title'
-                    }
+                    customClass: { popup: 'swal-premium-popup', title: 'swal-premium-title' }
                 }).then((result) => {
-                    // Hanya eksekusi jika user menekan tombol "Ya, Mulai Terbang"
                     if (result.isConfirmed) {
                         window.isSessionActive = true;
                         
-                        // Ubah tampilan tombol menjadi state "Berjalan"
                         btnSesiPatroli.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg> Akhiri & Simpan Laporan`;
                         btnSesiPatroli.style.background = "#E11D48";
-                        btnSesiPatroli.style.boxShadow = "0 10px 25px rgba(225, 29, 72, 0.4)";
                         
-                        // Nyalakan AI dan Timer
                         if (typeof window.nyalakanAI === 'function') window.nyalakanAI();
                         startStopwatch();
                         
-                        // Tembak API
                         fetch('/api/start_session', { method: 'POST' });
-                        
-                        // Beri notifikasi kecil (Toast)
                         Toast.fire({ icon: 'success', title: 'Sesi Patroli Dimulai!' });
                         if(window.addLogToConsole) window.addLogToConsole("[PATROLI] Sesi inspeksi kebun di-mulai.");
                     }
                 });
 
             } else {
-                // Konfirmasi saat INGIN MENGHENTIKAN sesi (Opsional, tapi bagus untuk UX)
                 Swal.fire({
                     title: 'Akhiri Sesi?',
                     text: "Data kalkulasi akan disimpan ke menu Riwayat dan AI akan dihentikan sementara.",
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonColor: '#10B981', // Hijau untuk save
+                    confirmButtonColor: '#10B981', 
                     cancelButtonColor: '#94A3B8',
                     confirmButtonText: 'Ya, Simpan Laporan',
                     cancelButtonText: 'Lanjut Terbang'
@@ -355,14 +419,11 @@ export function initPatrolSession() {
                     if (result.isConfirmed) {
                         window.isSessionActive = false;
                         
-                        // Kembalikan tombol ke state awal
-                        btnSesiPatroli.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Mulai Sesi Patroli`;
-                        btnSesiPatroli.style.background = "var(--primary)";
-                        btnSesiPatroli.style.boxShadow = "0 10px 25px rgba(225, 29, 72, 0.3)"; // Shadow bawaan
+                        btnSesiPatroli.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-.5-.5-2.5 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.5l-1 2c-.2.5.1 1 .6 1.1l7.4 1.9-4.6 4.6-2.1-.7c-.4-.1-.9.2-1.1.5l-.8 1.6c-.2.5.1 1 .6 1.1l4 .8 1.5 4c.1.5.6.8 1.1.6l1.6-.8c.4-.2.6-.6.5-1.1l-.7-2.1 4.6-4.6 1.9 7.4c.1.5.6.8 1.1.6l2-1c.4-.3.6-.7.5-1.2z"></path></svg> MULAI SESI PATROLI`;
+                        btnSesiPatroli.style.background = "linear-gradient(to bottom, rgba(225,29,72,0.15), rgba(225,29,72,0.05))";
                         
                         stopStopwatch();
 
-                        // Hentikan AI & Simpan Sesi
                         fetch('/api/stop_session', { method: 'POST' })
                             .then(res => res.json())
                             .then(async data => {

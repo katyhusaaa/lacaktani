@@ -20,6 +20,8 @@ from detection import change_model
 import socket
 from concurrent.futures import ThreadPoolExecutor
 
+import logging # Tambahin import ini di atas file
+
 cam_bp = Blueprint('cam', __name__)
 
 ALLOWED_EXTENSIONS = {'pt'}
@@ -27,6 +29,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @cam_bp.route('/api/connect_cam', methods=['POST'])
+@login_required
 def connect_cam():
     data = request.json
     cam_type = data.get('type', 'esp32') # Cek tipe kameranya (esp32 atau webcam)
@@ -60,6 +63,7 @@ def connect_cam():
             return jsonify({'status': 'error', 'message': f'Kamera di IP {ip_address} mati/tidak merespon.'}), 404
 
 @cam_bp.route('/predict', methods=['POST'])
+@login_required
 def predict():
     if 'file' not in request.files:
         return jsonify({'error': 'Tidak ada file yang diupload'}), 400
@@ -74,11 +78,13 @@ def predict():
     return jsonify(result)
 
 @cam_bp.route('/video_feed')
+@login_required
 def video_feed():
     # Manggil loop generator dari core/vision.py
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @cam_bp.route('/api/set_resolution', methods=['POST'])
+@login_required
 def set_resolution():
     if not cam_state.ACTIVE_CAMERA_URL:
         return jsonify({'status': 'error', 'message': 'Kamera belum terhubung'}), 400
@@ -132,6 +138,7 @@ def cam_control():
     return jsonify({'status': 'success'})
 
 @cam_bp.route('/api/set_ai_params', methods=['POST'])
+@login_required
 def set_ai_params():
     data = request.json
     if 'confidence' in data:
@@ -143,17 +150,19 @@ def set_ai_params():
     return jsonify({'status': 'success'})
 
 @cam_bp.route('/api/toggle_ai', methods=['POST'])
+@login_required
 def toggle_ai():
     cam_state.AI_ACTIVE = request.json.get('active', False)
     status_text = "AKTIF" if cam_state.AI_ACTIVE else "MATI"
     print(f"[INFO] Engine YOLOv5 sekarang: {status_text}")
     return jsonify({'status': 'success', 'ai_active': cam_state.AI_ACTIVE})
 
-import random # Jangan lupa tambahin ini di paling atas file kalau belum ada
+import random 
 
 @cam_bp.route('/api/stream_stats')
+@login_required
 def stream_stats():
-    # 1. Siapkan keranjang kosong (Default kalau pakai Webcam / Offline)
+    # 1. Siapkan keranjang kosong (Default)
     stats_data = {
         'fps': getattr(cam_state, 'current_fps', 0),
         'matang': getattr(cam_state, 'count_matang', 0), 
@@ -164,34 +173,48 @@ def stream_stats():
         'free_ram': None,
         'uptime': None,
         'temp': None,
-        'gps_lat': None,
-        'gps_lng': None,
+        'gps_lat': getattr(cam_state, 'latest_lat', None), 
+        'gps_lng': getattr(cam_state, 'latest_lng', None), 
         'gps_alt': None,
-        'gps_sat': 0
+        'gps_sat': getattr(cam_state, 'latest_sat', 0)
     }
     
-    # 2. Cek apakah ada kamera yang terkoneksi
+    # 2. Cek apakah ada kamera ESP32 yang terkoneksi
     if cam_state.ACTIVE_CAMERA_URL is not None: 
-        # JIKA PAKAI ESP32 (Koneksi Asli via IP)
         if isinstance(cam_state.ACTIVE_CAMERA_URL, str) and "http" in cam_state.ACTIVE_CAMERA_URL:
             ip = urlparse(cam_state.ACTIVE_CAMERA_URL).hostname
+            
+            # --- TARIK SEMUA DATA SEKALI JALAN KE PORT 82 ---
+            # Sesuai dengan source code .ino terbaru milik Anda
             try:
-                # Tembak port 82 yang udah lu bikin di C++
                 resp = requests.get(f"http://{ip}:82/telemetry", timeout=0.5)
                 if resp.status_code == 200:
                     data = resp.json()
                     
-                    # Ekstrak semua parameter dewa dari ESP32
+                    # Isi data hardware
                     stats_data['rssi'] = data.get('rssi', -100)
                     stats_data['free_ram'] = data.get('free_ram')
                     stats_data['uptime'] = data.get('uptime')
                     stats_data['temp'] = data.get('temp')
-                    stats_data['gps_lat'] = data.get('gps_lat')
-                    stats_data['gps_lng'] = data.get('gps_lng')
-                    stats_data['gps_alt'] = data.get('gps_alt')
-                    stats_data['gps_sat'] = data.get('gps_sat', 0)
-            except Exception:
-                stats_data['rssi'] = -100 # Kalau koneksi putus RTO
+                    
+                    # Isi data GPS (pastikan satelit dapet biar di UI ganti jadi ijo)
+                    gps_sat = int(data.get('gps_sat', 0))
+                    stats_data['gps_sat'] = gps_sat
+                    cam_state.latest_sat = gps_sat
+                    
+                    # Kalau koordinat valid (bukan NULL) dari ESP32, masukin ke state
+                    gps_lat = data.get('gps_lat')
+                    gps_lng = data.get('gps_lng')
+                    if gps_lat is not None and gps_lng is not None:
+                        stats_data['gps_lat'] = float(gps_lat)
+                        stats_data['gps_lng'] = float(gps_lng)
+                        
+                        cam_state.latest_lat = float(gps_lat)
+                        cam_state.latest_lng = float(gps_lng)
+                        
+            except Exception as e:
+                # print("Error fetch telemetry:", e)
+                stats_data['rssi'] = -100 
 
     # 3. Kirim keranjang data ke Javascript (Dashboard HTML)
     return jsonify(stats_data)
@@ -260,7 +283,6 @@ def list_models():
 @cam_bp.route('/api/upload_model', methods=['POST'])
 @login_required
 def upload_model():
-    """Nangkap file .pt yang di-upload user"""
     if 'file' not in request.files:
         return jsonify({'status': 'error', 'message': 'Tidak ada file'}), 400
         
@@ -268,13 +290,20 @@ def upload_model():
     if file.filename == '':
         return jsonify({'status': 'error', 'message': 'File kosong'}), 400
         
-    if file and file.filename.endswith('.pt'):
+    # --- SECURITY FIX: CEK FILE SIGNATURE (MAGIC BYTES) ---
+    header = file.read(4) # Baca 4 byte pertama
+    file.seek(0) # Kembalikan kursor baca ke awal
+    
+    # File .pt PyTorch modern adalah arsip ZIP (diawali dengan 'PK\x03\x04')
+    is_valid_signature = header == b'PK\x03\x04' 
+    
+    if file.filename.endswith('.pt') and is_valid_signature:
         filename = secure_filename(file.filename)
         filepath = os.path.join(MODEL_DIR, filename)
-        file.save(filepath) # Simpan ke folder
-        return jsonify({'status': 'success', 'message': f'Model {filename} berhasil diunggah!'})
+        file.save(filepath)
+        return jsonify({'status': 'success', 'message': f'Model {filename} aman dan berhasil diunggah!'})
         
-    return jsonify({'status': 'error', 'message': 'Format harus .pt'}), 400
+    return jsonify({'status': 'error', 'message': 'File Ditolak: Signature model tidak valid!'}), 400
 
 @cam_bp.route('/api/set_active_model', methods=['POST'])
 @login_required
@@ -335,15 +364,18 @@ def scan_network():
 @cam_bp.route('/api/delete_session/<int:session_id>', methods=['DELETE'])
 @login_required
 def delete_session(session_id):
-    # Cari data sesi berdasarkan ID
     session_to_delete = FlightSession.query.get(session_id)
     
     if session_to_delete:
+        # --- SECURITY FIX: AUDIT LOGGING ---
+        logging.warning(f"[AUDIT] User {current_user.username} menghapus Laporan Sesi ID: {session_id}")
+        
         db.session.delete(session_to_delete)
         db.session.commit()
         return jsonify({'status': 'success', 'message': 'Data patroli berhasil dihapus!'})
         
     return jsonify({'status': 'error', 'message': 'Data tidak ditemukan!'}), 404
+
 # Tambahin ini di paling bawah file cam_routes.py
 @cam_bp.route('/api/reset_stats', methods=['POST'])
 @login_required
