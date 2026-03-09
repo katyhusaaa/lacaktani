@@ -9,25 +9,31 @@ class User(UserMixin, db.Model):
     
     nama_lengkap = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
+    
+    # --- TAMBAHAN BARU BUAT FOTO PROFIL ---
+    avatar = db.Column(db.String(255), nullable=True) 
     # --------------------------------------
 
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     
-    # Pengaturan Kamera (Bawahnya biarin persis kayak ori lu)
+    is_verified = db.Column(db.Boolean, default=False)
+
+    # Pengaturan Kamera
     cam_res = db.Column(db.String(10), default="6")
     cam_bright = db.Column(db.Integer, default=0)
     cam_contrast = db.Column(db.Integer, default=0)
     cam_sat = db.Column(db.Integer, default=0)
     cam_exp = db.Column(db.Integer, default=0)
     
-    # Pengaturan AI 
+    # Pengaturan AI & Lensa
     ai_conf = db.Column(db.Float, default=0.50)
     cam_vflip = db.Column(db.Integer, default=0)
     cam_hmirror = db.Column(db.Integer, default=0)
     cam_awb = db.Column(db.Integer, default=1) 
     cam_aec = db.Column(db.Integer, default=1) 
     cam_lenc = db.Column(db.Integer, default=1)
+
 # ==========================================
 # TABEL BARU UNTUK SESI PATROLI & BYTETRACK
 # ==========================================

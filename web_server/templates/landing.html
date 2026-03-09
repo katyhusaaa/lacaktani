@@ -321,11 +321,11 @@
         </div>
     </footer>
 
-    <div class="saas-modal" id="modalAuth">
+<div class="saas-modal" id="modalAuth">
         <div class="modal-card">
             <h3 style="font-size: 28px; font-weight: 900; color: var(--text-dark); margin-bottom: 24px;">LacakTani<span style="color: var(--primary);">.ai</span></h3>
             
-            <div class="auth-tab">
+            <div class="auth-tab" id="authTabs">
                 <button class="tab-btn active" id="tabLogin">Login</button>
                 <button class="tab-btn" id="tabRegister">Buat Akun</button>
             </div>
@@ -333,29 +333,44 @@
             <form id="loginForm">
                 <input type="text" id="logUser" placeholder="Username" class="saas-input" required>
                 <input type="password" id="logPass" placeholder="Password" class="saas-input" required>
+                
+                <div style="text-align: right; margin-bottom: 16px;">
+                    <a href="#" id="btnTampilkanLupaAkun" style="font-size: 12px; font-weight: 700; color: #0EA5E9; text-decoration: none;">Lupa Username / Password?</a>
+                </div>
+
                 <button type="submit" class="btn-primary w-100" id="btnLoginBtn">Masuk ke Workspace</button>
             </form>
 
             <form id="registerForm" style="display: none; text-align: left;">
-            <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Nama Lengkap</label>
-            <input type="text" id="regNama" class="saas-input" placeholder="Cth: Agung Soeltani" required autocomplete="off">
-            
-            <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Email Aktif</label>
-            <input type="email" id="regEmail" class="saas-input" placeholder="email@kampus.com" required autocomplete="off">
-            
-            <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Buat Username</label>
-            <input type="text" id="regUser" class="saas-input" placeholder="Pilih username tanpa spasi" required autocomplete="off">
-            
-            <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Kata Sandi</label>
-            <input type="password" id="regPass" class="saas-input" placeholder="Buat Password Kuat" required>
-            
-            <button type="submit" class="btn-primary w-100" id="btnRegBtn" style="margin-top: 12px;">Daftar Sekarang</button>
-        </form>
+                <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Nama Lengkap</label>
+                <input type="text" id="regNama" class="saas-input" placeholder="Cth: Agung Soeltani" required autocomplete="off">
+                
+                <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Email Aktif</label>
+                <input type="email" id="regEmail" class="saas-input" placeholder="email@kampus.com" required autocomplete="off">
+                
+                <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Buat Username</label>
+                <input type="text" id="regUser" class="saas-input" placeholder="Pilih username tanpa spasi" required autocomplete="off">
+                
+                <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Kata Sandi</label>
+                <input type="password" id="regPass" class="saas-input" placeholder="Buat Password Kuat" required>
+                
+                <button type="submit" class="btn-primary w-100" id="btnRegBtn" style="margin-top: 12px;">Daftar Sekarang</button>
+            </form>
+
+            <form id="lupaAkunForm" style="display: none; text-align: left;">
+                <p style="font-size: 13px; color: #64748B; margin-bottom: 16px; text-align: center;">Masukkan email Anda. Kami akan mengirimkan Username dan Link Reset Password.</p>
+                <input type="email" id="recoveryEmail" class="saas-input" placeholder="Alamat Email Terdaftar" required autocomplete="off">
+                
+                <button type="submit" class="btn-primary w-100" id="btnKirimRecovery">Kirim Bantuan Pemulihan</button>
+                
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="#" id="btnKembaliKeLogin" style="font-size: 12px; font-weight: 700; color: #64748B; text-decoration: none;">Kembali ke Login</a>
+                </div>
+            </form>
             
             <button id="btnTutupAuthModal" class="btn-close-modal">Batalkan Proses</button>
         </div>
     </div>
-
 </div>
 
 <script>

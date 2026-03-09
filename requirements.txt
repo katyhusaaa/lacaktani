@@ -1,33 +1,48 @@
+# ==========================================
+# LacakTani.ai - Requirements List (2026)
+# ==========================================
+
 # --- Web Framework (Flask) ---
+# Inti dari dashboard GCS lu
 Flask>=2.0.0
 Werkzeug>=2.0.0
 
-# --- Authentication & Database ---
-# Wajib untuk sistem login dan manajemen user
-Flask-SQLAlchemy>=3.0.0
+# --- Authentication & Security ---
+# Wajib ada untuk sistem login, registrasi, dan verifikasi email
 Flask-Login>=0.6.0
-python-dotenv>=1.0.0
+Flask-Mail>=0.9.1            # <--- BARU: Untuk kirim email verifikasi
+itsdangerous>=2.0.0          # <--- BARU: Untuk generate token verifikasi aman
+python-dotenv>=1.0.0         # Untuk simpan SECRET_KEY dan Password Email
+
+# --- Database (SQLite / SQLAlchemy) ---
+# Manajemen data user dan history panen
+Flask-SQLAlchemy>=3.0.0
 
 # --- Computer Vision & Image Processing ---
+# Untuk stream video drone dan manipulasi gambar
 opencv-python>=4.5.0
 Pillow>=7.1.2
 
-# --- YOLOv5 Dependencies (Wajib ada biar best.pt jalan) ---
+# --- YOLOv5 Core Dependencies ---
+# Wajib ada biar file 'best.pt' lu bisa load dan deteksi stroberi
 matplotlib>=3.2.2
 numpy>=1.18.5
 PyYAML>=5.3.1
-requests>=2.23.0  # Dipakai juga untuk Live Cam stream capture
+requests>=2.23.0             # Dipakai juga untuk capture stream ESP32
 scipy>=1.4.1
 tqdm>=4.64.0
 pandas>=1.1.4
 seaborn>=0.11.0
-psutil           # Monitor resource system
+psutil                       # Untuk monitoring penggunaan CPU/RAM saat terbang
 
-# --- PDF Export ---
+# --- Report & Export ---
+# Untuk cetak PDF atau Excel di fitur PRO
 reportlab>=4.0.0
+openpyxl>=3.0.0              # <--- BARU: Untuk fitur cetak laporan ke Excel
 
-# --- PyTorch Core ---
-# Sebaiknya install torch manual sesuai versi CUDA GPU kamu (misal: pip install torch --index-url https://download.pytorch.org/whl/cu118)
-# Tapi kalau mau auto-install versi default:
+# --- PyTorch (AI Brain) ---
+# REKOMENDASI: Untuk laptop lu (NVIDIA GTX 1650), install versi CUDA manual:
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+# Jika hanya ingin install versi default (CPU/Generic):
 # torch>=1.7.0
 # torchvision>=0.8.1

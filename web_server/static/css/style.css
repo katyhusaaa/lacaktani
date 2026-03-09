@@ -340,26 +340,94 @@ body {
     margin-top: 24px; 
 }
 
-/* --- CSS BARU UNTUK NAV TIME WIDGET --- */
+/* =========================================================
+   CSS KHUSUS UNTUK JAM & DROPDOWN PROFIL
+   ========================================================= */
+/* Container untuk Jam di Dropdown (Biar rapi di kanan) */
 .nav-clock-container {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    pointer-events: none; /* Biar ga ganggu klik */
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }
 
-/* Kapsul Utama */
+/* Kotak Jam & Salam */
 .saas-time-badge {
     display: flex;
-    align-items: center;
-    background: #F8FAFC;
+    flex-direction: column;
+    align-items: flex-end;
+    background: white;
     border: 1px solid #E2E8F0;
-    border-radius: 100px;
-    padding: 6px 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02), inset 0 2px 4px rgba(255,255,255,1);
-    gap: 12px;
+    border-radius: 8px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
+/* Styling angka Jam */
+.clock-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+#clockValue {
+    font-size: 14px;
+    font-weight: 900;
+    color: #0F172A;
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 0.05em;
+}
+
+/* Bagian Salam & Nama (di atas Jam) */
+.greeting-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+#timeGreeting {
+    font-size: 10px;
+    font-weight: 800;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.user-highlight {
+    font-size: 14px;
+    font-weight: 900;
+    color: #0EA5E9; /* Biru Elegan */
+}
+
+/* Titik Hijau Berkedip */
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    background: #10B981;
+    border-radius: 50%;
+    animation: live-pulse 1.5s infinite;
+}
+
+@keyframes live-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); transform: scale(0.9); }
+    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); transform: scale(1); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); transform: scale(0.9); }
+}
+
+/* Efek Hover untuk List Dropdown */
+#userDropdownMenu a:hover, 
+#userDropdownMenu button:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+    transform: translateX(4px); /* Animasi geser dikit ke kanan */
+}
+
+/* Khusus tombol Logout pas di Hover */
+#userDropdownMenu #btnLogoutBtn:hover {
+    background: #FFF1F2 !important;
+    color: #E11D48 !important;
+}
 /* Bagian Jam */
 .clock-section {
     display: flex;
@@ -2183,6 +2251,165 @@ input[type="checkbox"] {
     color: var(--text-muted); 
     line-height: 1.6; 
     margin: 0; 
+}
+
+/* =========================================
+   AUTHENTICATION PAGES (Lupa Password/Username)
+   ========================================= */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F8FAFC; /* Warna background abu-abu super terang */
+    padding: 20px;
+    font-family: inherit;
+}
+
+.auth-card {
+    background: white;
+    width: 100%;
+    max-width: 420px;
+    padding: 40px 32px;
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.05);
+    border: 1px solid #E2E8F0;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.auth-logo {
+    font-size: 24px;
+    font-weight: 900;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.auth-logo span {
+    color: #E11D48;
+}
+
+.auth-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 8px 0;
+}
+
+.auth-subtitle {
+    font-size: 13px;
+    color: #64748B;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.auth-input-group {
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.auth-input-group svg {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+    transition: 0.2s;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 14px 16px 14px 46px;
+    border: 2px solid #E2E8F0;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0F172A;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    background: #F8FAFC;
+}
+
+.auth-input:focus {
+    border-color: #E11D48;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.1);
+}
+
+.auth-input:focus + svg {
+    color: #E11D48;
+}
+
+.btn-auth {
+    width: 100%;
+    padding: 16px;
+    background: #E11D48;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.btn-auth:hover {
+    background: #BE123C;
+    box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3);
+    transform: translateY(-1px);
+}
+
+.auth-links {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748B;
+}
+
+.auth-links a {
+    color: #0EA5E9;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.auth-links a:hover {
+    color: #0369A1;
+    text-decoration: underline;
+}
+
+/* Notifikasi / Flash Messages */
+.auth-flash {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.auth-flash.success {
+    background: #ECFDF5;
+    color: #059669;
+    border: 1px solid #A7F3D0;
+}
+
+.auth-flash.danger {
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
 }
 
 @media (max-width: 768px) {

@@ -96,6 +96,9 @@ def set_resolution():
     try:
         response = requests.get(f"http://{ip_address}/control?var=framesize&val={val}", timeout=3)
         if response.status_code == 200:
+            # Simpan resolusi yang baru dipilih ke database profil user
+            current_user.cam_res = str(val)
+            db.session.commit()
             return jsonify({'status': 'success'})
         return jsonify({'status': 'error', 'message': 'ESP32 menolak perintah'})
     except Exception:
@@ -168,7 +171,8 @@ def stream_stats():
         'matang': getattr(cam_state, 'count_matang', 0), 
         'mentah': getattr(cam_state, 'count_mentah', 0),
         'bunga': getattr(cam_state, 'count_bunga', 0),
-        'res': getattr(cam_state, 'current_res', '---'),
+        # Nah ini kuncinya, dia bakal ngambil resolusi dari DB lo sekarang
+        'res': current_user.cam_res if current_user.cam_res else '---', 
         'rssi': None,
         'free_ram': None,
         'uptime': None,
@@ -218,7 +222,7 @@ def stream_stats():
 
     # 3. Kirim keranjang data ke Javascript (Dashboard HTML)
     return jsonify(stats_data)
-
+    
 @cam_bp.route('/api/start_session', methods=['POST'])
 @login_required
 def start_session():
@@ -283,6 +287,7 @@ def list_models():
 @cam_bp.route('/api/upload_model', methods=['POST'])
 @login_required
 def upload_model():
+    """Nangkap file .pt yang di-upload user"""
     if 'file' not in request.files:
         return jsonify({'status': 'error', 'message': 'Tidak ada file'}), 400
         
@@ -290,20 +295,47 @@ def upload_model():
     if file.filename == '':
         return jsonify({'status': 'error', 'message': 'File kosong'}), 400
         
-    # --- SECURITY FIX: CEK FILE SIGNATURE (MAGIC BYTES) ---
+    # --- SECURITY FIX: UPDATE MAGIC BYTES UNTUK PYTORCH ---
     header = file.read(4) # Baca 4 byte pertama
-    file.seek(0) # Kembalikan kursor baca ke awal
+    file.seek(0) # Kembalikan kursor ke awal biar file bisa disave
     
-    # File .pt PyTorch modern adalah arsip ZIP (diawali dengan 'PK\x03\x04')
-    is_valid_signature = header == b'PK\x03\x04' 
+    # Cek PyTorch Baru (ZIP format: PK..) atau Lama (Pickle: \x80..)
+    is_valid_signature = header.startswith(b'PK') or header.startswith(b'\x80')
     
-    if file.filename.endswith('.pt') and is_valid_signature:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(MODEL_DIR, filename)
-        file.save(filepath)
-        return jsonify({'status': 'success', 'message': f'Model {filename} aman dan berhasil diunggah!'})
-        
-    return jsonify({'status': 'error', 'message': 'File Ditolak: Signature model tidak valid!'}), 400
+    if file.filename.endswith('.pt'):
+        if is_valid_signature:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(MODEL_DIR, filename)
+            file.save(filepath) 
+            return jsonify({'status': 'success', 'message': f'Model {filename} aman dan berhasil diunggah!'})
+        else:
+            return jsonify({'status': 'error', 'message': 'File Ditolak: Bukan model PyTorch asli (Format tidak dikenali)!'}), 400
+            
+    return jsonify({'status': 'error', 'message': 'Format harus .pt'}), 400
+
+@cam_bp.route('/api/delete_model/<model_name>', methods=['DELETE'])
+@login_required
+def delete_model(model_name):
+    """Menghapus file model .pt dari server"""
+    # Mencegah directory traversal attack (Hacker hapus file sistem)
+    safe_model_name = secure_filename(model_name)
+    filepath = os.path.join(MODEL_DIR, safe_model_name)
+
+    # 1. Cek apakah file beneran ada
+    if not os.path.exists(filepath):
+        return jsonify({'status': 'error', 'message': 'Model tidak ditemukan di server!'}), 404
+
+    # 2. Cek apakah model ini sedang dipakai oleh sistem AI saat ini
+    # (Kalau dihapus pas lagi dipakai, AI bakal crash)
+    if getattr(cam_state, 'CURRENT_MODEL', '') == safe_model_name:
+        return jsonify({'status': 'error', 'message': 'Model sedang aktif! Ganti ke model lain dulu sebelum menghapus.'}), 400
+
+    # 3. Eksekusi penghapusan file
+    try:
+        os.remove(filepath)
+        return jsonify({'status': 'success', 'message': f'Model {safe_model_name} berhasil dibuang!'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': f'Gagal menghapus file: {str(e)}'}), 500
 
 @cam_bp.route('/api/set_active_model', methods=['POST'])
 @login_required

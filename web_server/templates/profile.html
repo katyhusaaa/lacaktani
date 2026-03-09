@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<div class="history-layout">
+    <div class="page-header" style="margin-bottom: 32px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;">
+        <div>
+            <h2 class="page-title">Workspace Configuration</h2>
+            <p class="page-subtitle" style="font-size: 14px; max-width: 600px;">Atur identitas operator, preferensi telemetri GCS, dan keamanan akun.</p>
+        </div>
+        <a href="/" class="btn-nav-back" style="background: white; border: 1px solid var(--border-color); color: var(--text-dark);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Kembali ke GCS
+        </a>
+    </div>
+
+    <div class="card" style="padding: 32px; margin-bottom: 32px; display: flex; align-items: center; gap: 24px; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.5);">
+        
+<div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+        <div style="position: relative; width: 80px; height: 80px;">
+            <div id="profileAvatarWrap" class="pro-avatar-frame" style="width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #E11D48, #BE123C); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; overflow: hidden; border: 2px solid rgba(255,255,255,0.2);">
+                {% if current_user.avatar %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                    {% set name_parts = current_user.nama_lengkap.strip().split(' ') %}
+                    {% set initial = name_parts[0][0]|upper + (name_parts[1][0]|upper if name_parts|length > 1 else '') %}
+                    <span>{{ initial }}</span>
+                {% endif %}
+            </div>
+            <div style="position: absolute; bottom: 2px; right: 2px; width: 18px; height: 18px; background: #10B981; border: 3px solid #0F172A; border-radius: 50%; z-index: 2;"></div>
+        </div>
+<button id="btnGantiFoto" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #94A3B8; padding: 4px 12px; font-size: 11px; border-radius: 100px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='white'; this.style.borderColor='white'" onmouseout="this.style.color='#94A3B8'; this.style.borderColor='rgba(255,255,255,0.2)'">
+            Ganti Foto
+        </button>
+        <input type="file" id="inputFotoProfil" accept="image/png, image/jpeg" style="display: none;">
+    </div>
+    
+    <div style="flex: 1;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <h2 id="displayNamaOperator" style="color: white; margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px;">
+                {{ current_user.nama_lengkap | title }}
+            </h2>
+            
+            <div class="fake-pro-badge" style="margin: 0; padding: 3px 10px; border-radius: 6px; font-size: 10px;">
+                LACAKTANI PRO ACCOUNT
+            </div>
+        </div>
+
+        <p style="color: #94A3B8; margin: 0; font-size: 13px; display: flex; gap: 16px; font-weight: 600;">
+            <span style="display: flex; align-items: center; gap: 4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> {{ current_user.username }}</span>
+            <span style="display: flex; align-items: center; gap: 4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> <span id="displayEmailOperator">{{ current_user.email }}</span></span>
+        </p>
+
+        <div style="color: #FFD700; font-size: 10px; font-weight: 800; letter-spacing: 1px; margin-top: 14px; text-transform: uppercase; opacity: 0.8; display: flex; align-items: center; gap: 6px;">
+             LACAKTANI PRO ACTIVE UNTIL 2027
+        </div>
+    </div>
+</div>
+
+    <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px; align-items: start;">
+        
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+            
+            <div class="card" style="padding: 32px;">
+                <h3 style="font-size: 18px; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin: 0 0 24px 0;">
+                    <div style="background: #F0F9FF; color: #0EA5E9; padding: 8px; border-radius: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
+                    Identitas Operator & Email
+                </h3>
+                
+                <form id="formUpdateNama" style="margin-bottom: 24px;">
+                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Nama Operator Lengkap</label>
+                    <input type="text" id="profNama" class="saas-input" value="{{ current_user.nama_lengkap }}" required style="margin-bottom: 12px; width: 100%; box-sizing: border-box;">
+                    <button type="submit" id="btnSimpanNama" style="background: #0F172A; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#1E293B'" onmouseout="this.style.background='#0F172A'">Simpan Perubahan</button>
+                </form>
+
+                <div style="width: 100%; height: 1px; background: #F1F5F9; margin: 24px 0;"></div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Alamat Email Saat Ini</label>
+                    <input type="email" class="saas-input" value="{{ current_user.email }}" readonly disabled style="margin-bottom: 12px; width: 100%; box-sizing: border-box; background: #F8FAFC; color: #94A3B8;">
+                    <button type="button" id="btnBukaGantiEmail" class="btn-outline" style="font-size: 13px; padding: 10px 20px;">Ganti Alamat Email</button>
+
+                    <form id="formGantiEmail" style="display: none; margin-top: 16px; padding: 20px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px;">
+                        <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Alamat Email Baru</label>
+                        <input type="email" id="profEmailBaru" class="saas-input" placeholder="email.baru@domain.com" required style="margin-bottom: 16px; width: 100%; box-sizing: border-box;">
+                        
+                        <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Kata Sandi Saat Ini (Untuk Konfirmasi)</label>
+                        <input type="password" id="profPassConfirmEmail" class="saas-input" placeholder="Masukkan sandi Anda" required style="margin-bottom: 12px; width: 100%; box-sizing: border-box;">
+                        
+                        <p style="font-size: 11px; color: #64748B; margin: 0 0 16px 0; line-height: 1.5;">* Tautan verifikasi akan dikirim ke email baru Anda. Akses login baru akan aktif setelah Anda mengklik tautan tersebut.</p>
+                        
+                        <div style="display: flex; gap: 12px;">
+                            <button type="submit" id="btnKirimVerifEmail" class="btn-saas-primary w-100" style="justify-content: center;">Kirim Verifikasi</button>
+                            <button type="button" id="btnBatalGantiEmail" class="btn-outline">Batal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 32px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3 style="font-size: 18px; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin: 0;">
+                        <div style="background: #F5F3FF; color: #8B5CF6; padding: 8px; border-radius: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                        Konfigurasi Sistem GCS
+                    </h3>
+                    <span style="font-size: 10px; font-weight: 800; color: #8B5CF6; background: white; border: 1px solid #C4B5FD; padding: 4px 10px; border-radius: 100px;">LOCAL STORAGE</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 20px; border-radius: 16px;">
+                        <h4 style="font-size: 13px; font-weight: 900; margin: 0 0 16px 0; color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+                            Hardware Binding
+                        </h4>
+                        
+                        <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; display: block;">IP Kamera ESP32 Default</label>
+                        <div style="display: flex; margin-bottom: 16px;">
+                            <div style="background: #E2E8F0; padding: 12px; border-radius: 8px 0 0 8px; font-size: 13px; font-weight: 800; color: #64748B; border: 1px solid #CBD5E1; border-right: none;">http://</div>
+                            <input type="text" id="prefIpKamera" class="saas-input" placeholder="192.168.x.x" style="border-radius: 0 8px 8px 0; margin-bottom: 0; padding: 12px; width: 100%; box-sizing: border-box;">
+                        </div>
+
+                        <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; display: block;">Resolusi Auto-Load</label>
+                        <select id="prefResolution" class="saas-input" style="padding: 12px; width: 100%; box-sizing: border-box;">
+                            <option value="5">CIF (400x296) - Anti Lag</option>
+                            <option value="6" selected>VGA (640x480) - Standar</option>
+                            <option value="8">XGA (1024x768) - HD Detail</option>
+                        </select>
+                    </div>
+
+                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 20px; border-radius: 16px;">
+                        <h4 style="font-size: 13px; font-weight: 900; margin: 0 0 16px 0; color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                            AI & Tampilan Layar
+                        </h4>
+                        
+                        <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; display: flex; justify-content: space-between;">
+                            Default Confidence <span id="valDefConf" style="color: var(--primary);">0.50</span>
+                        </label>
+                        <input type="range" id="prefDefaultConf" class="saas-slider" min="0.1" max="0.9" step="0.05" value="0.5" style="margin-bottom: 16px;">
+
+                        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 10px; background: white; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 8px;">
+                            <div style="font-size: 11px; font-weight: 800; color: var(--text-dark);">Tampilkan Info FPS di Layar</div>
+                            <input type="checkbox" id="prefShowFPS" style="width: 16px; height: 16px; accent-color: var(--primary);" checked>
+                        </label>
+
+                        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 10px; background: white; border: 1px solid #E2E8F0; border-radius: 8px;">
+                            <div style="font-size: 11px; font-weight: 800; color: var(--text-dark);">Tampilkan Suhu ESP32</div>
+                            <input type="checkbox" id="prefShowTele" style="width: 16px; height: 16px; accent-color: var(--primary);" checked>
+                        </label>
+                    </div>
+                </div>
+                <button id="btnSimpanPreferensi" class="btn-outline w-100" style="margin-top: 24px; padding: 14px; color: #8B5CF6; border-color: #8B5CF6;">Terapkan & Simpan Pengaturan GCS</button>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+            
+            <div class="card" style="padding: 32px;">
+                <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 24px; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin-top: 0;">
+                    <div style="background: #ECFDF5; color: #10B981; padding: 8px; border-radius: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+                    Kredensial Login
+                </h3>
+                <form id="formPassword">
+                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Kata Sandi Saat Ini</label>
+                    <input type="password" id="oldPass" class="saas-input" placeholder="Masukkan sandi lama" required style="margin-bottom: 16px; width: 100%; box-sizing: border-box;">
+                    
+                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Kata Sandi Baru</label>
+                    <input type="password" id="newPass" class="saas-input" placeholder="Minimal 8 karakter" required style="margin-bottom: 24px; width: 100%; box-sizing: border-box;">
+                    
+                    <button type="submit" id="btnSimpanPassword" class="btn-saas-primary w-100" style="background: #10B981; box-shadow: 0 4px 15px rgba(16,185,129,0.3); justify-content: center;">Perbarui Kredensial</button>
+                </form>
+            </div>
+
+            <div class="card" style="padding: 32px; border: 1px solid #E2E8F0;">
+                <h3 style="font-size: 16px; font-weight: 900; margin-bottom: 16px; color: var(--text-dark); display: flex; align-items: center; gap: 8px; margin-top: 0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Pusat Bantuan Fitur
+                </h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px; border-left: 3px solid #0EA5E9;">
+                        <h4 style="font-size: 12px; font-weight: 800; margin: 0 0 4px 0; color: var(--text-dark);">Ganti Email & Verifikasi</h4>
+                        <p style="font-size: 11px; margin: 0; color: var(--text-muted); line-height: 1.5;">Untuk mencegah peretasan, perubahan email harus diverifikasi. Link unik akan dikirim ke email baru Anda. Email lama tetap aktif sampai link tersebut diklik.</p>
+                    </div>
+                    
+                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px; border-left: 3px solid #8B5CF6;">
+                        <h4 style="font-size: 12px; font-weight: 800; margin: 0 0 4px 0; color: var(--text-dark);">Pengaturan Local Storage</h4>
+                        <p style="font-size: 11px; margin: 0; color: var(--text-muted); line-height: 1.5;">IP Kamera dan Resolusi yang Anda simpan di sini akan otomatis dimuat saat Anda membuka menu "Connect Kamera" di halaman utama Dashboard GCS.</p>
+                    </div>
+
+                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px; border-left: 3px solid #F59E0B;">
+                        <h4 style="font-size: 12px; font-weight: 800; margin: 0 0 4px 0; color: var(--text-dark);">Fungsi Wipe Data</h4>
+                        <p style="font-size: 11px; margin: 0; color: var(--text-muted); line-height: 1.5;">Gunakan tombol "Wipe Data" di bawah jika tabel History Anda sudah penuh dengan data uji coba. Ini akan mereset database laporan tanpa menghapus akun Anda.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 32px; border: 2px solid #FECDD3; background: #FFF1F2;">
+                <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 16px; color: #BE123C; display: flex; align-items: center; gap: 8px; margin-top: 0;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Danger Zone
+                </h3>
+                
+                <div style="background: white; border: 1px solid #FDA4AF; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 800; color: var(--text-dark);">Kosongkan Data Laporan</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Menghapus seluruh tabel History.</div>
+                    </div>
+                    <button id="btnWipeHistory" style="background: #F59E0B; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 12px;">Wipe Data</button>
+                </div>
+
+                <div style="background: white; border: 1px solid #FDA4AF; border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 800; color: #BE123C;">Musnahkan Akun</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Tindakan permanen dan fatal.</div>
+                    </div>
+                    <button id="btnHapusAkun" style="background: #E11D48; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 12px;">Delete Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="module">
+    import { initProfile } from "{{ url_for('static', filename='js/auth.js') }}";
+    document.addEventListener('DOMContentLoaded', () => {
+        initProfile();
+    });
+</script>
+{% endblock %}

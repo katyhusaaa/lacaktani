@@ -28,3 +28,9 @@ def history():
 @main_bp.route('/docs')
 def docs():
     return render_template('docs.html')
+
+# --- RUTE MANAJEMEN AKUN ---
+@main_bp.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html')

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="landing-wrap" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #F8FAFC;">
+    <div class="card" style="max-width: 480px; width: 100%; padding: 40px; text-align: center; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);">
+        
+        {% if status == 'success' %}
+        <div style="width: 80px; height: 80px; background: #ECFDF5; color: #10B981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h2 style="font-size: 24px; font-weight: 900; color: #0F172A; margin-bottom: 12px;">Verifikasi Berhasil!</h2>
+        
+        {% elif status == 'error' %}
+        <div style="width: 80px; height: 80px; background: #FFF1F2; color: #E11D48; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        </div>
+        <h2 style="font-size: 24px; font-weight: 900; color: #0F172A; margin-bottom: 12px;">Verifikasi Gagal</h2>
+        
+        {% else %}
+        <div style="width: 80px; height: 80px; background: #F0F9FF; color: #0EA5E9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </div>
+        <h2 style="font-size: 24px; font-weight: 900; color: #0F172A; margin-bottom: 12px;">Informasi</h2>
+        {% endif %}
+
+        <p style="font-size: 15px; color: #475569; margin-bottom: 32px; line-height: 1.6;">{{ message }}</p>
+
+        <a href="/" class="btn-primary" style="width: 100%; justify-content: center; padding: 14px;">
+            Kembali ke Halaman Login
+        </a>
+    </div>
+</div>
+{% endblock %}

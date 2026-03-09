@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv() # Load env paling pertama!
 
 from flask import Flask
-from extensions import db, login_manager
+from extensions import db, login_manager, mail
 from db_models import User
 
 # Import semua Blueprint yang udah kita bikin
@@ -22,6 +22,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'business-logic/models' 
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 
 
+# --- KONFIGURASI FLASK-MAIL ---
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = (
+    'LacakTani System', 
+    os.getenv('MAIL_DEFAULT_SENDER', 'support.lacaktani@gmail.com')
+)
+
 # --- SECURITY FIX: Batas Umur Sesi (Rule 01) ---
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1) # Sesi otomatis mati dalam 24 jam
 # -----------------------------------------------
@@ -30,6 +41,7 @@ db.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = 'main.index' # Biar kalo blm login dilempar ke landing page
 login_manager.login_message = "Silakan login terlebih dahulu." # Pesan default
+mail.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -77,4 +89,4 @@ def add_security_headers(response):
 
 if __name__ == '__main__':
     # Hapus threaded=True kalau nanti pakai Waitress/Gunicorn, tapi untuk dev biarkan saja
-    app.run(debug=True, port=5000, threaded=True)
+    app.run(host='0.0.0.0', debug=True, port=5000, threaded=True)
