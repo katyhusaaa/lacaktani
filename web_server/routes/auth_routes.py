@@ -323,9 +323,49 @@ def api_recovery():
         token = get_reset_token(user.email)
         reset_url = url_for('auth.reset_password', token=token, _external=True)
         
+        # Desain HTML untuk Email Recovery
+        html_isi = f"""
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+        <body style="background-color: #F8FAFC; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 40px 10px;">
+            <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #E2E8F0;">
+                <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 32px 20px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px;">LacakTani<span style="color: #E11D48;">.ai</span></h1>
+                    <p style="color: #94A3B8; font-size: 13px; margin: 8px 0 0 0; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">Pemulihan Akun</p>
+                </div>
+                <div style="padding: 40px 30px; text-align: center;">
+                    <div style="background-color: #F0F9FF; width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 24px;"><span style="font-size: 28px;">🔑</span></div>
+                    <h2 style="margin: 0 0 16px 0; font-size: 22px; color: #0F172A; font-weight: 800;">Informasi Akun Anda</h2>
+                    <p style="font-size: 15px; color: #475569; line-height: 1.6; margin: 0 0 16px 0;">Halo <strong>{user.nama_lengkap}</strong>,</p>
+                    <p style="font-size: 15px; color: #475569; line-height: 1.6; margin: 0 0 24px 0;">Sesuai permintaan Anda, berikut adalah detail username yang terdaftar di sistem kami:</p>
+                    
+                    <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; margin-bottom: 32px;">
+                        <span style="font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 1px;">Username Anda</span>
+                        <div style="font-size: 22px; font-weight: 900; color: #0EA5E9; margin-top: 4px; letter-spacing: 1px;">{user.username}</div>
+                    </div>
+
+                    <p style="font-size: 15px; color: #475569; line-height: 1.6; margin: 0 0 24px 0;">Jika Anda juga melupakan kata sandi (password), silakan klik tombol di bawah ini untuk membuat sandi baru:</p>
+
+                    <div style="margin-bottom: 32px;"><a href="{reset_url}" style="background-color: #E11D48; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 800; font-size: 15px; display: inline-block; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3);">Buat Password Baru</a></div>
+                    
+                    <div style="background-color: #FFF1F2; border-radius: 8px; padding: 16px; border: 1px dashed #FDA4AF; text-align: left;">
+                        <p style="font-size: 12px; color: #BE123C; margin: 0; line-height: 1.5;"><strong>⚠️ Peringatan Keamanan:</strong> Tautan reset password akan otomatis hangus dalam <strong>30 menit</strong>. Jika Anda sudah mengingat password Anda atau tidak meminta email ini, abaikan saja.</p>
+                    </div>
+                </div>
+                <div style="background-color: #F1F5F9; padding: 24px; text-align: center; border-top: 1px solid #E2E8F0;">
+                    <p style="margin: 0; font-size: 12px; color: #64748B; font-weight: 600;">&copy; 2026 LacakTani Project.</p>
+                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #94A3B8;">Politeknik Negeri Jakarta - D3 Telekomunikasi</p>
+                    <p style="margin: 16px 0 0 0; font-size: 10px; color: #CBD5E1;">Email ini dikirim secara otomatis oleh sistem bot LacakTani. Jangan membalas email ini.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
         try:
-            msg = Message("Recovery Akun LacakTani", recipients=[email])
-            msg.body = f"Halo {user.nama_lengkap},\n\nAnda meminta bantuan pemulihan akun.\n\nUsername Anda adalah: {user.username}\n\nJika Anda juga lupa password, klik tautan di bawah ini untuk meresetnya (berlaku 30 menit):\n{reset_url}\n\nJika Anda tidak merasa melakukan permintaan ini, abaikan email ini."
+            # PENTING: Perhatikan penambahan parameter html=html_isi di sini
+            msg = Message("Pemulihan Akun LacakTani.ai Anda", recipients=[email], html=html_isi)
             mail.send(msg)
             return jsonify({'status': 'success', 'message': 'Username dan instruksi reset password telah dikirim ke email Anda.'})
         except Exception as e:

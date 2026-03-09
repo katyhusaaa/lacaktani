@@ -14,6 +14,7 @@ Flask-Mail>=0.9.1            # <--- BARU: Untuk kirim email verifikasi
 itsdangerous>=2.0.0          # <--- BARU: Untuk generate token verifikasi aman
 python-dotenv>=1.0.0         # Untuk simpan SECRET_KEY dan Password Email
 
+
 # --- Database (SQLite / SQLAlchemy) ---
 # Manajemen data user dan history panen
 Flask-SQLAlchemy>=3.0.0

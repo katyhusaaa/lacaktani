@@ -266,7 +266,7 @@
                     <form id="collabForm" style="display: flex; flex-direction: column; gap: 16px;">
                         <label style="font-size: 13px; font-weight: 800; color: var(--text-dark); text-align: left;">Tinggalkan Email Anda</label>
                         
-                        <input type="email" class="saas-input" style="height: 54px; margin: 0; width: 100%; box-sizing: border-box;" placeholder="email.perusahaan@anda.com" required>
+                        <input type="email" class="saas-input" style="height: 54px; margin: 0; width: 100%; box-sizing: border-box;" placeholder="email anda" required>
                         
                         <button type="submit" class="btn-primary" style="height: 54px; margin: 0; width: 100%; justify-content: center; box-sizing: border-box;">
                             Hubungi Kami
@@ -341,20 +341,31 @@
                 <button type="submit" class="btn-primary w-100" id="btnLoginBtn">Masuk ke Workspace</button>
             </form>
 
-            <form id="registerForm" style="display: none; text-align: left;">
+<form id="registerForm" style="display: none; text-align: left;">
                 <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Nama Lengkap</label>
-                <input type="text" id="regNama" class="saas-input" placeholder="Cth: Agung Soeltani" required autocomplete="off">
+                <input type="text" id="regNama" class="saas-input" placeholder="Cth: Amba Rita" required autocomplete="off">
                 
                 <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Email Aktif</label>
-                <input type="email" id="regEmail" class="saas-input" placeholder="email@kampus.com" required autocomplete="off">
+                <input type="email" id="regEmail" class="saas-input" placeholder="email@kamu.com" required autocomplete="off">
                 
                 <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Buat Username</label>
                 <input type="text" id="regUser" class="saas-input" placeholder="Pilih username tanpa spasi" required autocomplete="off">
                 
                 <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Kata Sandi</label>
-                <input type="password" id="regPass" class="saas-input" placeholder="Buat Password Kuat" required>
+                <input type="password" id="regPass" class="saas-input" placeholder="Minimal 8 karakter" required style="margin-bottom: 8px;">
                 
-                <button type="submit" class="btn-primary w-100" id="btnRegBtn" style="margin-top: 12px;">Daftar Sekarang</button>
+                <div style="display: flex; gap: 4px; margin-bottom: 6px;" id="regStrengthBars">
+                    <div class="s-bar-reg" style="height: 4px; flex: 1; border-radius: 2px; background: #E2E8F0; transition: 0.3s;"></div>
+                    <div class="s-bar-reg" style="height: 4px; flex: 1; border-radius: 2px; background: #E2E8F0; transition: 0.3s;"></div>
+                    <div class="s-bar-reg" style="height: 4px; flex: 1; border-radius: 2px; background: #E2E8F0; transition: 0.3s;"></div>
+                </div>
+                <p id="regStrengthText" style="font-size: 11px; color: var(--text-muted); margin: 0 0 12px 0; font-weight: 600;">Kekuatan Sandi: Belum diketik</p>
+
+                <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Konfirmasi Kata Sandi</label>
+                <input type="password" id="regConfirmPass" class="saas-input" placeholder="Ketik ulang kata sandi" required style="margin-bottom: 8px;">
+                <p id="regMatchText" style="font-size: 11px; color: #E11D48; margin: 0 0 12px 0; font-weight: 600; display: none;">Kata sandi tidak cocok!</p>
+                
+                <button type="submit" class="btn-primary w-100" id="btnRegBtn" style="margin-top: 12px; opacity: 0.5; cursor: not-allowed;" disabled>Daftar Sekarang</button>
             </form>
 
             <form id="lupaAkunForm" style="display: none; text-align: left;">
@@ -421,5 +432,92 @@
             });
         }
     });
+    // ==========================================
+        // LOGIC KEKUATAN & KONFIRMASI PASSWORD REGISTER
+        // ==========================================
+        const regPass = document.getElementById('regPass');
+        const regConfirmPass = document.getElementById('regConfirmPass');
+        const regMatchText = document.getElementById('regMatchText');
+        const regStrengthText = document.getElementById('regStrengthText');
+        const regBars = document.querySelectorAll('.s-bar-reg');
+        const btnRegBtn = document.getElementById('btnRegBtn');
+
+        if (regPass && regConfirmPass) {
+            let isRegStrong = false;
+            let isRegMatch = false;
+
+            function checkRegStrength(password) {
+                let strength = 0;
+                if (password.length >= 8) strength++;
+                if (password.match(/[A-Z]/)) strength++;
+                if (password.match(/[0-9]/)) strength++;
+
+                regBars.forEach(bar => bar.style.background = '#E2E8F0');
+
+                if (password.length === 0) {
+                    regStrengthText.textContent = "Kekuatan Sandi: Belum diketik";
+                    regStrengthText.style.color = "var(--text-muted)";
+                    isRegStrong = false;
+                } else if (strength === 1) {
+                    regBars[0].style.background = '#E11D48'; 
+                    regStrengthText.textContent = "Lemah (Gunakan kombinasi huruf besar & angka)";
+                    regStrengthText.style.color = '#E11D48';
+                    isRegStrong = false;
+                } else if (strength === 2) {
+                    regBars[0].style.background = '#F59E0B'; 
+                    regBars[1].style.background = '#F59E0B';
+                    regStrengthText.textContent = "Sedang (Tambahkan karakter lagi)";
+                    regStrengthText.style.color = '#F59E0B';
+                    isRegStrong = false;
+                } else if (strength === 3) {
+                    regBars[0].style.background = '#10B981'; 
+                    regBars[1].style.background = '#10B981';
+                    regBars[2].style.background = '#10B981';
+                    regStrengthText.textContent = "Kuat! Sandi aman.";
+                    regStrengthText.style.color = '#10B981';
+                    isRegStrong = true;
+                }
+                validateRegForm();
+            }
+
+            function checkRegMatch() {
+                if (regConfirmPass.value.length === 0) {
+                    regMatchText.style.display = "none";
+                    isRegMatch = false;
+                } else if (regPass.value !== regConfirmPass.value) {
+                    regMatchText.style.display = "block";
+                    regMatchText.textContent = "✖ Kata sandi tidak sama!";
+                    regMatchText.style.color = "#E11D48";
+                    regConfirmPass.style.borderColor = "#E11D48";
+                    isRegMatch = false;
+                } else {
+                    regMatchText.style.display = "block";
+                    regMatchText.textContent = "✔ Kata sandi cocok";
+                    regMatchText.style.color = "#10B981";
+                    regConfirmPass.style.borderColor = "#10B981";
+                    isRegMatch = true;
+                }
+                validateRegForm();
+            }
+
+            function validateRegForm() {
+                if (isRegStrong && isRegMatch) {
+                    btnRegBtn.disabled = false;
+                    btnRegBtn.style.opacity = "1";
+                    btnRegBtn.style.cursor = "pointer";
+                } else {
+                    btnRegBtn.disabled = true;
+                    btnRegBtn.style.opacity = "0.5";
+                    btnRegBtn.style.cursor = "not-allowed";
+                }
+            }
+
+            regPass.addEventListener('input', () => {
+                checkRegStrength(regPass.value);
+                if (regConfirmPass.value.length > 0) checkRegMatch();
+            });
+
+            regConfirmPass.addEventListener('input', checkRegMatch);
+        }
 </script>
 {% endblock %}

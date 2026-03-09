@@ -350,7 +350,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 3l14 9-14 9V3z"></path>
                     </svg>
-                    MULAI SESI PATROLI
+                    MULAI FLIGHT MODE
                 </button>
             </div>
 
@@ -434,6 +434,7 @@
 
 <div class="saas-modal" id="modalGuide">
     <div class="modal-card" style="max-width: 800px; text-align: left; padding: 0; overflow: hidden;">
+        
         <div style="background: #F8FAFC; padding: 24px 32px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h3 style="font-weight: 900; color: var(--text-dark); font-size: 20px; margin: 0; letter-spacing: -0.02em;">Buku Manual LacakTani.ai</h3>
@@ -442,21 +443,87 @@
             <button id="btnTutupPanduan" style="background: white; border: 1px solid var(--border-color); width: 36px; height: 36px; border-radius: 50%; font-size: 20px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">&times;</button>
         </div>
 
-        <div style="padding: 32px; max-height: 70vh; overflow-y: auto;">
+        <div style="padding: 32px; max-height: 70vh; overflow-y: auto; background: white;">
+            
             <div style="margin-bottom: 32px;">
                 <h4 style="font-size: 12px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                    Bab I: Alur Eksekusi & Jaringan
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+                    Bab I: Koneksi & Jaringan Kamera
                 </h4>
-                <div style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; display: grid; gap: 12px;">
+                <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
                     <div>
-                        <strong style="font-size: 13px; color: var(--text-dark);">1. Koneksi Sumber Video (Koneksi Kamera)</strong>
-                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0; line-height: 1.5;">Pilih <b>ESP32-CAM</b> dan masukkan IP untuk menerima transmisi video nirkabel dari drone. Pilih <b>Webcam</b> untuk melakukan pengujian lokal menggunakan kamera laptop.</p>
+                        <strong style="font-size: 14px; color: var(--text-dark); display: block; margin-bottom: 4px;">ESP32-CAM (Mode Drone)</strong>
+                        <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.6;">Pilih opsi ini untuk terhubung dengan modul kamera pada drone. Anda harus memasukkan IP Address lokal ESP32 (contoh: 192.168.x.x) atau gunakan fitur <b>Auto Scan Network</b> untuk pencarian otomatis.</p>
+                    </div>
+                    <div style="width: 100%; height: 1px; background: var(--border-color);"></div>
+                    <div>
+                        <strong style="font-size: 14px; color: var(--text-dark); display: block; margin-bottom: 4px;">Debug Lokal (Webcam)</strong>
+                        <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.6;">Gunakan mode ini untuk menguji model AI menggunakan kamera internal laptop atau USB Webcam tanpa perlu menerbangkan drone.</p>
                     </div>
                 </div>
             </div>
+
+            <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 12px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    Bab II: Indikator Telemetri (OSD)
+                </h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6;">Saat video terhubung, terdapat baris angka di atas layar. Berikut adalah cara membacanya:</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: 12px; background: white;">
+                        <span style="font-size: 11px; font-weight: 800; color: #64748B;">RESOLUSI</span>
+                        <div style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-top: 4px;">Contoh: VGA (640x480)</div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 0 0;">Ukuran dimensi tangkapan lensa. Makin tinggi resolusi, akurasi AI meningkat namun memakan lebih banyak RAM.</p>
+                    </div>
+                    <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: 12px; background: white;">
+                        <span style="font-size: 11px; font-weight: 800; color: #64748B;">FPS (Frames Per Second)</span>
+                        <div style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-top: 4px;">Contoh: 16.2 FPS</div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 0 0;">Kecepatan proses AI. Angka di bawah 10 FPS mengindikasikan koneksi lambat atau beban server terlalu berat.</p>
+                    </div>
+                    <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: 12px; background: white;">
+                        <span style="font-size: 11px; font-weight: 800; color: #64748B;">SUHU CHIP ESP32</span>
+                        <div style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-top: 4px;">Contoh: 53.2 °C</div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 0 0;">Peringatan: Jika suhu melewati 70°C, segera daratkan drone untuk menghindari *overheat* pada hardware.</p>
+                    </div>
+                    <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: 12px; background: white;">
+                        <span style="font-size: 11px; font-weight: 800; color: #64748B;">KAPASITAS RAM</span>
+                        <div style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-top: 4px;">Contoh: 87364 KB</div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 0 0;">Sisa memori PSRAM eksternal. Jika mendekati angka 0, stream video dapat terputus (*crash*).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 32px;">
+                <h4 style="font-size: 12px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    Bab III: Kalibrasi Engine & Optik
+                </h4>
+                <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-muted); line-height: 1.8;">
+                        <li><strong style="color: var(--text-dark);">Lens Optimization:</strong> Sesuaikan Kecerahan, Kontras, dan Saturasi ESP32 secara real-time menyesuaikan cuaca di kebun.</li>
+                        <li><strong style="color: var(--text-dark);">Image Enhancement:</strong> Fitur <b>AWB</b> (Auto White Balance) dan <b>AEC</b> (Auto Exposure Control) disarankan selalu ON agar warna stroberi akurat.</li>
+                        <li><strong style="color: var(--text-dark);">AI Confidence Threshold:</strong> Angka (0.1 - 0.9) yang menentukan seberapa "yakin" AI dalam mengenali stroberi. Geser ke kanan (misal: 0.7) agar AI lebih ketat dan mencegah salah deteksi. Geser ke kiri jika banyak stroberi yang terlewat.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div>
+                <h4 style="font-size: 12px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    Bab IV: Proses Deteksi Stroberi
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="padding: 16px; background: white; border-left: 4px solid #64748B; border-radius: 8px; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <strong style="font-size: 14px; color: var(--text-dark); margin-bottom: 4px; display: block;">Mode Uji Coba AI</strong>
+                        <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5;">Menyalakan deteksi visual tanpa merekam data ke sistem. Cocok digunakan saat drone masih di bawah untuk memastikan kamera dan AI berjalan normal.</p>
+                    </div>
+                    <div style="padding: 16px; background: white; border-left: 4px solid #E11D48; border-radius: 8px; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <strong style="font-size: 14px; color: var(--text-dark); margin-bottom: 4px; display: block;">Mulai Sesi Patroli (Mode Utama)</strong>
+                        <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5;">Tekan tombol ini sesaat sebelum drone lepas landas. Sistem akan mulai menghitung stroberi yang lewat di bawah kamera (Matang, Mentah, Berbunga). Ketika tombol <b>Akhiri & Simpan</b> ditekan, data hasil penerbangan akan disimpan permanen ke dalam <i>Buku Laporan</i>.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
