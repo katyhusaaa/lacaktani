@@ -3,226 +3,571 @@
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-<div class="history-layout">
-    <div class="page-header" style="margin-bottom: 32px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;">
-        <div>
-            <h2 class="page-title">Workspace Configuration</h2>
-            <p class="page-subtitle" style="font-size: 14px; max-width: 600px;">Atur identitas operator, preferensi telemetri GCS, dan keamanan akun.</p>
-        </div>
-        <a href="/" class="btn-nav-back" style="background: white; border: 1px solid var(--border-color); color: var(--text-dark);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            Kembali ke GCS
+<style>
+    .discord-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        min-height: 80vh;
+        align-items: start;
+    }
+
+    .discord-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        position: sticky;
+        top: 40px;
+    }
+
+    .sidebar-category {
+        font-size: 11px;
+        font-weight: 900;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 12px 0 4px 0;
+        padding-left: 12px;
+    }
+
+    .sidebar-btn {
+        background: transparent;
+        border: none;
+        text-align: left;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #64748B;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .sidebar-btn:hover { background: #F1F5F9; color: var(--text-dark); }
+    .sidebar-btn.active { background: #E2E8F0; color: var(--text-dark); font-weight: 800; }
+    .sidebar-divider { height: 1px; background: var(--border-color); margin: 8px 0; }
+
+    .discord-content-area { display: flex; flex-direction: column; width: 100%; }
+    .content-section { display: none; animation: fadeIn 0.3s ease; }
+    .content-section.active { display: block; }
+
+    .section-title {
+        font-size: 24px;
+        font-weight: 900;
+        color: var(--text-dark);
+        margin: 0 0 24px 0;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .setting-list-card {
+        background: #F8FAFC;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .setting-item:last-child { border-bottom: none; }
+
+    .setting-item-info h4 { margin: 0 0 4px 0; font-size: 14px; font-weight: 800; color: var(--text-dark); }
+    .setting-item-info p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+    /* TOGGLE SWITCH CSS */
+    .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #10B981; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div class="discord-layout">
+
+    <div class="discord-sidebar">
+        <div class="sidebar-category">USER SETTINGS</div>
+        <button class="sidebar-btn active" data-target="myAccount">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> My Account
+        </button>
+        <button class="sidebar-btn" data-target="gcsConfig">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg> GCS System
+        </button>
+        <button class="sidebar-btn" data-target="security">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Security & Login
+        </button>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-category">WORKSPACE</div>
+        <button class="sidebar-btn" data-target="helpCenter">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Help Center
+        </button>
+
+        <div class="sidebar-divider"></div>
+
+        <a href="/" style="text-decoration: none;">
+            <button class="sidebar-btn" style="color: #0EA5E9; width: 100%;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg> Kembali ke Dashboard
+            </button>
         </a>
     </div>
 
-    <div class="card" style="padding: 32px; margin-bottom: 32px; display: flex; align-items: center; gap: 24px; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.5);">
-        
-<div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
-        <div style="position: relative; width: 80px; height: 80px;">
-            <div id="profileAvatarWrap" class="pro-avatar-frame" style="width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #E11D48, #BE123C); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; overflow: hidden; border: 2px solid rgba(255,255,255,0.2);">
-                {% if current_user.avatar %}
-                    <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" style="width: 100%; height: 100%; object-fit: cover;">
-                {% else %}
-                    {% set name_parts = current_user.nama_lengkap.strip().split(' ') %}
-                    {% set initial = name_parts[0][0]|upper + (name_parts[1][0]|upper if name_parts|length > 1 else '') %}
-                    <span>{{ initial }}</span>
-                {% endif %}
-            </div>
-            <div style="position: absolute; bottom: 2px; right: 2px; width: 18px; height: 18px; background: #10B981; border: 3px solid #0F172A; border-radius: 50%; z-index: 2;"></div>
-        </div>
-<button id="btnGantiFoto" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #94A3B8; padding: 4px 12px; font-size: 11px; border-radius: 100px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='white'; this.style.borderColor='white'" onmouseout="this.style.color='#94A3B8'; this.style.borderColor='rgba(255,255,255,0.2)'">
-            Ganti Foto
-        </button>
-        <input type="file" id="inputFotoProfil" accept="image/png, image/jpeg" style="display: none;">
-    </div>
-    
-    <div style="flex: 1;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-            <h2 id="displayNamaOperator" style="color: white; margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px;">
-                {{ current_user.nama_lengkap | title }}
-            </h2>
+    <div class="discord-content-area">
+
+        <div id="myAccount" class="content-section active">
+            <h2 class="section-title">My Account</h2>
             
-            <div class="fake-pro-badge" style="margin: 0; padding: 3px 10px; border-radius: 6px; font-size: 10px;">
-                LACAKTANI PRO ACCOUNT
-            </div>
-        </div>
-
-        <p style="color: #94A3B8; margin: 0; font-size: 13px; display: flex; gap: 16px; font-weight: 600;">
-            <span style="display: flex; align-items: center; gap: 4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> {{ current_user.username }}</span>
-            <span style="display: flex; align-items: center; gap: 4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> <span id="displayEmailOperator">{{ current_user.email }}</span></span>
-        </p>
-
-        <div style="color: #FFD700; font-size: 10px; font-weight: 800; letter-spacing: 1px; margin-top: 14px; text-transform: uppercase; opacity: 0.8; display: flex; align-items: center; gap: 6px;">
-             LACAKTANI PRO ACTIVE UNTIL 2027
-        </div>
-    </div>
-</div>
-
-    <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px; align-items: start;">
-        
-        <div style="display: flex; flex-direction: column; gap: 32px;">
-            
-            <div class="card" style="padding: 32px;">
-                <h3 style="font-size: 18px; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin: 0 0 24px 0;">
-                    <div style="background: #F0F9FF; color: #0EA5E9; padding: 8px; border-radius: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
-                    Identitas Operator & Email
-                </h3>
+            <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+                <div style="height: 120px; background: linear-gradient(135deg, #0F172A, #1E293B); position: relative;">
+                    <div style="position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.5); color: #FFD700; padding: 4px 12px; border-radius: 100px; font-size: 10px; font-weight: 900; letter-spacing: 1px; border: 1px solid rgba(255,215,0,0.3);">PRO ACTIVE</div>
+                </div>
                 
-                <form id="formUpdateNama" style="margin-bottom: 24px;">
-                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Nama Operator Lengkap</label>
-                    <input type="text" id="profNama" class="saas-input" value="{{ current_user.nama_lengkap }}" required style="margin-bottom: 12px; width: 100%; box-sizing: border-box;">
-                    <button type="submit" id="btnSimpanNama" style="background: #0F172A; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#1E293B'" onmouseout="this.style.background='#0F172A'">Simpan Perubahan</button>
-                </form>
+                <div style="padding: 0 24px 24px 24px; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div style="display: flex; gap: 20px; align-items: flex-end;">
+                            
+                            <div style="position: relative; width: 110px; height: 110px; border-radius: 50%; border: 6px solid white; background: #0F172A; display: flex; justify-content: center; align-items: center; overflow: hidden; font-size: 36px; color: white; font-weight: 900; margin-top: -55px; z-index: 10; box-shadow: var(--shadow-sm);">
+                                {% if current_user.avatar %}
+                                    <img id="displayFotoProfil" src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" style="width: 100%; height: 100%; object-fit: cover; z-index: 1;">
+                                {% else %}
+                                    {% set name_parts = current_user.nama_lengkap.strip().split(' ') %}
+                                    {% set initial = name_parts[0][0]|upper + (name_parts[1][0]|upper if name_parts|length > 1 else '') %}
+                                    <span id="displayInisial" style="z-index: 1;">{{ initial }}</span>
+                                {% endif %}
+                                
+                                <label for="inputFotoProfil" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; cursor: pointer; transition: 0.2s; font-size: 12px; font-weight: 800; color: white; z-index: 5;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">UBAH</label>
+                                
+                                <input type="file" id="inputFotoProfil" accept="image/png, image/jpeg" style="display: none;">
+                            </div>
 
-                <div style="width: 100%; height: 1px; background: #F1F5F9; margin: 24px 0;"></div>
-
-                <div>
-                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Alamat Email Saat Ini</label>
-                    <input type="email" class="saas-input" value="{{ current_user.email }}" readonly disabled style="margin-bottom: 12px; width: 100%; box-sizing: border-box; background: #F8FAFC; color: #94A3B8;">
-                    <button type="button" id="btnBukaGantiEmail" class="btn-outline" style="font-size: 13px; padding: 10px 20px;">Ganti Alamat Email</button>
-
-                    <form id="formGantiEmail" style="display: none; margin-top: 16px; padding: 20px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px;">
-                        <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Alamat Email Baru</label>
-                        <input type="email" id="profEmailBaru" class="saas-input" placeholder="email.baru@domain.com" required style="margin-bottom: 16px; width: 100%; box-sizing: border-box;">
-                        
-                        <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Kata Sandi Saat Ini (Untuk Konfirmasi)</label>
-                        <input type="password" id="profPassConfirmEmail" class="saas-input" placeholder="Masukkan sandi Anda" required style="margin-bottom: 12px; width: 100%; box-sizing: border-box;">
-                        
-                        <p style="font-size: 11px; color: #64748B; margin: 0 0 16px 0; line-height: 1.5;">* Tautan verifikasi akan dikirim ke email baru Anda. Akses login baru akan aktif setelah Anda mengklik tautan tersebut.</p>
-                        
-                        <div style="display: flex; gap: 12px;">
-                            <button type="submit" id="btnKirimVerifEmail" class="btn-saas-primary w-100" style="justify-content: center;">Kirim Verifikasi</button>
-                            <button type="button" id="btnBatalGantiEmail" class="btn-outline">Batal</button>
+                            <div style="padding-bottom: 8px;">
+                                <h3 style="margin: 0 0 4px 0; font-size: 24px; font-weight: 900; color: var(--text-dark);">{{ current_user.nama_lengkap | title }}</h3>
+                                <p style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-muted);">{{ current_user.username }}</p>
+                            </div>
                         </div>
-                    </form>
+                    </div>
+                </div>
+
+                <div style="background: #F8FAFC; padding: 20px 24px; border-top: 1px solid var(--border-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div>
+                            <div style="font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase;">Display Name</div>
+                            <div style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-top: 4px;">{{ current_user.nama_lengkap }}</div>
+                        </div>
+                        <button id="btnEditNama" class="btn-outline" style="padding: 6px 16px; font-size: 12px;">Edit</button>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase;">Email Address</div>
+                            <div style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-top: 4px;">
+                                {% set email_parts = current_user.email.split('@') %}
+                                {% set hidden_email = email_parts[0][:3] + '***@' + email_parts[1] %}
+                                <span id="displayEmailHidden">{{ hidden_email }}</span>
+                                <span id="displayEmailFull" style="display:none;">{{ current_user.email }}</span>
+                                <span id="btnRevealEmail" style="color: var(--primary); font-size: 12px; cursor: pointer; margin-left: 8px; font-weight: 800;">Reveal</span>
+                            </div>
+                        </div>
+                        <button id="btnEditEmail" class="btn-outline" style="padding: 6px 16px; font-size: 12px;">Edit</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="card" style="padding: 32px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h3 style="font-size: 18px; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin: 0;">
-                        <div style="background: #F5F3FF; color: #8B5CF6; padding: 8px; border-radius: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
-                        Konfigurasi Sistem GCS
-                    </h3>
-                    <span style="font-size: 10px; font-weight: 800; color: #8B5CF6; background: white; border: 1px solid #C4B5FD; padding: 4px 10px; border-radius: 100px;">LOCAL STORAGE</span>
+            <form id="formUpdateNama" style="display: none; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px;">
+                <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Update Display Name</label>
+                <input type="text" id="profNama" class="saas-input" value="{{ current_user.nama_lengkap }}" required style="width: 100%; margin-bottom: 12px;">
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="btn-saas-primary">Simpan</button>
+                    <button type="button" id="btnBatalEditNama" class="btn-outline">Batal</button>
                 </div>
+            </form>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 20px; border-radius: 16px;">
-                        <h4 style="font-size: 13px; font-weight: 900; margin: 0 0 16px 0; color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
-                            Hardware Binding
-                        </h4>
-                        
-                        <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; display: block;">IP Kamera ESP32 Default</label>
-                        <div style="display: flex; margin-bottom: 16px;">
-                            <div style="background: #E2E8F0; padding: 12px; border-radius: 8px 0 0 8px; font-size: 13px; font-weight: 800; color: #64748B; border: 1px solid #CBD5E1; border-right: none;">http://</div>
-                            <input type="text" id="prefIpKamera" class="saas-input" placeholder="192.168.x.x" style="border-radius: 0 8px 8px 0; margin-bottom: 0; padding: 12px; width: 100%; box-sizing: border-box;">
-                        </div>
-
-                        <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; display: block;">Resolusi Auto-Load</label>
-                        <select id="prefResolution" class="saas-input" style="padding: 12px; width: 100%; box-sizing: border-box;">
-                            <option value="5">CIF (400x296) - Anti Lag</option>
-                            <option value="6" selected>VGA (640x480) - Standar</option>
-                            <option value="8">XGA (1024x768) - HD Detail</option>
-                        </select>
-                    </div>
-
-                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 20px; border-radius: 16px;">
-                        <h4 style="font-size: 13px; font-weight: 900; margin: 0 0 16px 0; color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
-                            AI & Tampilan Layar
-                        </h4>
-                        
-                        <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; display: flex; justify-content: space-between;">
-                            Default Confidence <span id="valDefConf" style="color: var(--primary);">0.50</span>
-                        </label>
-                        <input type="range" id="prefDefaultConf" class="saas-slider" min="0.1" max="0.9" step="0.05" value="0.5" style="margin-bottom: 16px;">
-
-                        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 10px; background: white; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 8px;">
-                            <div style="font-size: 11px; font-weight: 800; color: var(--text-dark);">Tampilkan Info FPS di Layar</div>
-                            <input type="checkbox" id="prefShowFPS" style="width: 16px; height: 16px; accent-color: var(--primary);" checked>
-                        </label>
-
-                        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 10px; background: white; border: 1px solid #E2E8F0; border-radius: 8px;">
-                            <div style="font-size: 11px; font-weight: 800; color: var(--text-dark);">Tampilkan Suhu ESP32</div>
-                            <input type="checkbox" id="prefShowTele" style="width: 16px; height: 16px; accent-color: var(--primary);" checked>
-                        </label>
-                    </div>
+             <form id="formGantiEmail" style="display: none; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 0;">Kami akan mengirimkan link verifikasi.</p>
+                <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Email Baru</label>
+                <input type="email" id="profEmailBaru" class="saas-input" required style="width: 100%; margin-bottom: 16px;">
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="btn-saas-primary">Verifikasi</button>
+                    <button type="button" id="btnBatalEditEmail" class="btn-outline">Batal</button>
                 </div>
-                <button id="btnSimpanPreferensi" class="btn-outline w-100" style="margin-top: 24px; padding: 14px; color: #8B5CF6; border-color: #8B5CF6;">Terapkan & Simpan Pengaturan GCS</button>
+            </form>
+
+            <h2 class="section-title" style="font-size: 18px; border: none; padding: 0; margin: 32px 0 16px 0;">Notifikasi & Privasi</h2>
+            <div class="setting-list-card">
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <h4>Laporan Panen Harian</h4>
+                        <p>Kirim rekap total panen stroberi ke email saya setiap selesai patroli.</p>
+                    </div>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <h4>Peringatan Hardware</h4>
+                        <p>Kirim email jika suhu ESP32 melebihi batas wajar (> 75°C).</p>
+                    </div>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 32px;">
+        <div id="gcsConfig" class="content-section">
+            <h2 class="section-title">GCS System Configuration</h2>
+            <div class="setting-list-card">
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <h4>Hardware Binding IP</h4>
+                        <p>Alamat IP default untuk ESP32-CAM.</p>
+                    </div>
+                    <div style="display: flex;">
+                        <div style="background: #E2E8F0; padding: 10px; border-radius: 8px 0 0 8px; font-size: 12px; font-weight: 800; color: #64748B; border: 1px solid #CBD5E1; border-right: none;">http://</div>
+                        <input type="text" id="prefIpKamera" class="saas-input" placeholder="192.168.x.x" style="border-radius: 0 8px 8px 0; margin: 0; width: 150px;">
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <h4>Resolusi Auto-Load</h4>
+                        <p>Kualitas stream video saat terhubung ke drone.</p>
+                    </div>
+                    <select id="prefResolution" class="saas-input" style="margin: 0; width: 200px;">
+                        <option value="5">CIF (400x296)</option>
+                        <option value="6" selected>VGA (640x480)</option>
+                        <option value="8">XGA (1024x768)</option>
+                    </select>
+                </div>
+            </div>
+            <button id="btnSimpanPreferensi" class="btn-saas-primary">Simpan Konfigurasi Sistem</button>
+        </div>
+
+
+        <div id="security" class="content-section">
+            <h2 class="section-title">Password & Authentication</h2>
             
-            <div class="card" style="padding: 32px;">
-                <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 24px; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin-top: 0;">
-                    <div style="background: #ECFDF5; color: #10B981; padding: 8px; border-radius: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
-                    Kredensial Login
-                </h3>
+            <div class="card" style="padding: 24px; border: 1px solid var(--border-color); margin-bottom: 32px;">
                 <form id="formPassword">
-                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Kata Sandi Saat Ini</label>
-                    <input type="password" id="oldPass" class="saas-input" placeholder="Masukkan sandi lama" required style="margin-bottom: 16px; width: 100%; box-sizing: border-box;">
+                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Current Password</label>
+                    <input type="password" id="oldPass" class="saas-input" required style="width: 100%; max-width: 400px; margin-bottom: 20px;">
                     
-                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Kata Sandi Baru</label>
-                    <input type="password" id="newPass" class="saas-input" placeholder="Minimal 8 karakter" required style="margin-bottom: 24px; width: 100%; box-sizing: border-box;">
+                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">New Password</label>
+                    <input type="password" id="newPass" class="saas-input" required style="width: 100%; max-width: 400px; margin-bottom: 8px;">
                     
-                    <button type="submit" id="btnSimpanPassword" class="btn-saas-primary w-100" style="background: #10B981; box-shadow: 0 4px 15px rgba(16,185,129,0.3); justify-content: center;">Perbarui Kredensial</button>
+                    <div style="max-width: 400px; margin-bottom: 20px;">
+                        <div style="display: flex; gap: 4px; height: 4px; margin-bottom: 6px;">
+                            <div id="strBar1" style="flex: 1; background: #E2E8F0; border-radius: 2px; transition: 0.3s;"></div>
+                            <div id="strBar2" style="flex: 1; background: #E2E8F0; border-radius: 2px; transition: 0.3s;"></div>
+                            <div id="strBar3" style="flex: 1; background: #E2E8F0; border-radius: 2px; transition: 0.3s;"></div>
+                        </div>
+                        <div id="strText" style="font-size: 11px; font-weight: 700; color: var(--text-muted);">Masukkan password baru</div>
+                    </div>
+                    
+                    <label style="font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block;">Confirm New Password</label>
+                    <input type="password" id="confirmPass" class="saas-input" required style="width: 100%; max-width: 400px; margin-bottom: 6px;">
+                    <div id="matchText" style="font-size: 11px; font-weight: 700; height: 16px; margin-bottom: 20px;"></div>
+                    
+                    <button type="submit" id="btnSimpanPassword" class="btn-saas-primary" style="background: #10B981; box-shadow: 0 4px 15px rgba(16,185,129,0.3);" disabled>Update Password</button>
                 </form>
             </div>
 
-            <div class="card" style="padding: 32px; border: 1px solid #E2E8F0;">
-                <h3 style="font-size: 16px; font-weight: 900; margin-bottom: 16px; color: var(--text-dark); display: flex; align-items: center; gap: 8px; margin-top: 0;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                    Pusat Bantuan Fitur
-                </h3>
-                
-                <div style="display: flex; flex-direction: column; gap: 16px;">
-                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px; border-left: 3px solid #0EA5E9;">
-                        <h4 style="font-size: 12px; font-weight: 800; margin: 0 0 4px 0; color: var(--text-dark);">Ganti Email & Verifikasi</h4>
-                        <p style="font-size: 11px; margin: 0; color: var(--text-muted); line-height: 1.5;">Untuk mencegah peretasan, perubahan email harus diverifikasi. Link unik akan dikirim ke email baru Anda. Email lama tetap aktif sampai link tersebut diklik.</p>
+            <h2 class="section-title" style="color: #E11D48; border-color: #FECDD3;">Danger Zone</h2>
+            <div class="setting-list-card" style="border-color: #FECDD3; background: #FFF1F2;">
+                <div class="setting-item" style="border-color: #FECDD3;">
+                    <div class="setting-item-info">
+                        <h4 style="color: #E11D48;">Wipe Data Laporan</h4>
+                        <p style="color: #F43F5E;">Kosongkan seluruh tabel history tanpa menghapus akun.</p>
                     </div>
-                    
-                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px; border-left: 3px solid #8B5CF6;">
-                        <h4 style="font-size: 12px; font-weight: 800; margin: 0 0 4px 0; color: var(--text-dark);">Pengaturan Local Storage</h4>
-                        <p style="font-size: 11px; margin: 0; color: var(--text-muted); line-height: 1.5;">IP Kamera dan Resolusi yang Anda simpan di sini akan otomatis dimuat saat Anda membuka menu "Connect Kamera" di halaman utama Dashboard GCS.</p>
-                    </div>
-
-                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px; border-left: 3px solid #F59E0B;">
-                        <h4 style="font-size: 12px; font-weight: 800; margin: 0 0 4px 0; color: var(--text-dark);">Fungsi Wipe Data</h4>
-                        <p style="font-size: 11px; margin: 0; color: var(--text-muted); line-height: 1.5;">Gunakan tombol "Wipe Data" di bawah jika tabel History Anda sudah penuh dengan data uji coba. Ini akan mereset database laporan tanpa menghapus akun Anda.</p>
-                    </div>
+                    <button id="btnWipeHistory" class="btn-outline" style="color: #F59E0B; border-color: #F59E0B; background: white;">Wipe Data</button>
                 </div>
-            </div>
-
-            <div class="card" style="padding: 32px; border: 2px solid #FECDD3; background: #FFF1F2;">
-                <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 16px; color: #BE123C; display: flex; align-items: center; gap: 8px; margin-top: 0;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                    Danger Zone
-                </h3>
-                
-                <div style="background: white; border: 1px solid #FDA4AF; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-size: 13px; font-weight: 800; color: var(--text-dark);">Kosongkan Data Laporan</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Menghapus seluruh tabel History.</div>
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <h4 style="color: #E11D48;">Delete Account</h4>
+                        <p style="color: #F43F5E;">Tindakan ini permanen. Semua data akan musnah.</p>
                     </div>
-                    <button id="btnWipeHistory" style="background: #F59E0B; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 12px;">Wipe Data</button>
-                </div>
-
-                <div style="background: white; border: 1px solid #FDA4AF; border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-size: 13px; font-weight: 800; color: #BE123C;">Musnahkan Akun</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Tindakan permanen dan fatal.</div>
-                    </div>
-                    <button id="btnHapusAkun" style="background: #E11D48; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 12px;">Delete Account</button>
+                    <button id="btnHapusAkun" class="btn-primary" style="background: #E11D48; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 800;">Delete Account</button>
                 </div>
             </div>
         </div>
+
+<div id="helpCenter" class="content-section">
+            <h2 class="section-title">Help & Support Center</h2>
+            
+<div style="margin-bottom: 32px;">
+                <h3 style="font-size: 14px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 16px; letter-spacing: 1px;">Pertanyaan Sering Diajukan</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer;" onclick="this.querySelector('.faq-ans').style.display = this.querySelector('.faq-ans').style.display === 'none' ? 'block' : 'none'">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--text-dark);">GCS tidak mendeteksi ESP32-CAM?</h4>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <p class="faq-ans" style="display: none; font-size: 13px; margin: 12px 0 0 0; color: var(--text-muted); line-height: 1.6; border-top: 1px dashed #eee; padding-top: 12px;">Pastikan laptop dan ESP32 berada di jaringan WiFi yang sama. Cek tab <b>GCS System</b> untuk memastikan IP Binding sudah benar sesuai IP yang muncul di Serial Monitor Arduino IDE saat alat dinyalakan.</p>
+                    </div>
+
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer;" onclick="this.querySelector('.faq-ans').style.display = this.querySelector('.faq-ans').style.display === 'none' ? 'block' : 'none'">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--text-dark);">Kenapa video stream patah-patah (lag/delay)?</h4>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <p class="faq-ans" style="display: none; font-size: 13px; margin: 12px 0 0 0; color: var(--text-muted); line-height: 1.6; border-top: 1px dashed #eee; padding-top: 12px;">Terjadi karena resolusi kamera terlalu tinggi atau sinyal WiFi melemah saat drone menjauh. Masuk ke panel setting di Dashboard dan turunkan resolusi ke <b>VGA (640x480)</b> atau <b>CIF (400x296)</b> untuk kelancaran stream.</p>
+                    </div>
+
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer;" onclick="this.querySelector('.faq-ans').style.display = this.querySelector('.faq-ans').style.display === 'none' ? 'block' : 'none'">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--text-dark);">Modul ESP32-CAM sangat panas, apakah aman?</h4>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <p class="faq-ans" style="display: none; font-size: 13px; margin: 12px 0 0 0; color: var(--text-muted); line-height: 1.6; border-top: 1px dashed #eee; padding-top: 12px;">Hal tersebut wajar karena chip ESP32 bekerja keras untuk encode video via WiFi. Namun, jika indikator suhu di layar mendekati atau melewati <b>75°C</b>, disarankan untuk mengakhiri sesi patroli sementara untuk mendinginkan modul.</p>
+                    </div>
+
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer;" onclick="this.querySelector('.faq-ans').style.display = this.querySelector('.faq-ans').style.display === 'none' ? 'block' : 'none'">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--text-dark);">Kenapa deteksi AI sering salah sasaran atau tidak mendeteksi?</h4>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <p class="faq-ans" style="display: none; font-size: 13px; margin: 12px 0 0 0; color: var(--text-muted); line-height: 1.6; border-top: 1px dashed #eee; padding-top: 12px;">Faktor pencahayaan matahari, bayangan, atau kecepatan drone saat terbang sangat berpengaruh. Gunakan *slider* <b>AI Confidence</b> di Dashboard: turunkan nilai (misal 0.40) jika AI lambat mendeteksi, atau naikkan (misal 0.70) jika banyak deteksi palsu (daun terdeteksi buah).</p>
+                    </div>
+
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer;" onclick="this.querySelector('.faq-ans').style.display = this.querySelector('.faq-ans').style.display === 'none' ? 'block' : 'none'">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--text-dark);">Radar dan Map terjebak di "Wait Fix" / Loading?</h4>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <p class="faq-ans" style="display: none; font-size: 13px; margin: 12px 0 0 0; color: var(--text-muted); line-height: 1.6; border-top: 1px dashed #eee; padding-top: 12px;">Modul GPS Neo-6M membutuhkan waktu (cold start) untuk mencari minimal 4 satelit agar koordinat valid. Pastikan uji terbang dilakukan di <b>luar ruangan (outdoor)</b> tanpa halangan atap beton/gedung tinggi.</p>
+                    </div>
+
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer;" onclick="this.querySelector('.faq-ans').style.display = this.querySelector('.faq-ans').style.display === 'none' ? 'block' : 'none'">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--text-dark);">Mengapa FPS drop drastis ketika Mode AI dinyalakan?</h4>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <p class="faq-ans" style="display: none; font-size: 13px; margin: 12px 0 0 0; color: var(--text-muted); line-height: 1.6; border-top: 1px dashed #eee; padding-top: 12px;">Memproses deteksi YOLOv5 sangat menguras kinerja PC (Terutama jika belum menggunakan CUDA/GPU). Pastikan GCS berjalan pada PC dengan spesifikasi yang memadai, atau tutup aplikasi berat lain saat GCS aktif.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #0F172A, #1E293B); padding: 32px; border-radius: 20px; color: white; position: relative; overflow: hidden;">
+                <div style="position: relative; z-index: 2;">
+                    <h3 style="font-size: 20px; font-weight: 900; margin: 0 0 8px 0;">Masih Butuh Bantuan?</h3>
+                    <p style="font-size: 13px; color: #94A3B8; margin: 0 0 24px 0; max-width: 400px; line-height: 1.5;">Jika Anda mengalami kendala teknis pada drone, sistem AI, atau database yang tidak bisa diselesaikan melalui FAQ.</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <a href="https://wa.me/6281234567890?text=Halo%20Admin%2C%20saya%20Agung.%20Ada%20kendala%20di%20sistem%20LacakTani." target="_blank" style="text-decoration: none;">
+                            <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                                <div style="background: #10B981; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; font-weight: 800;">WhatsApp Support</div>
+                                    <div style="font-size: 10px; color: #64748B;">Respon < 1 Jam</div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="mailto:admin@lacaktani.ai?subject=Laporan Kendala Sistem LacakTani" style="text-decoration: none;">
+                            <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                                <div style="background: #E11D48; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; font-weight: 800;">Email Ticketing</div>
+                                    <div style="font-size: 10px; color: #64748B;">Respon 1x24 Jam</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: #0EA5E9; filter: blur(100px); opacity: 0.1;"></div>
+            </div>
+        </div>
+
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // ==========================================================
+        // 1. UPLOAD FOTO PROFIL (EVENT DELEGATION BIAR 100% KETANGKEP)
+        // ==========================================================
+        // Kita pasang listener di document body, trus filter kalau yang berubah itu si inputFotoProfil
+        document.body.addEventListener('change', async function(e) {
+            if (e.target && e.target.id === 'inputFotoProfil') {
+                const input = e.target;
+                
+                if (input.files && input.files.length > 0) {
+                    const file = input.files[0];
+                    
+                    // --- A. Bikin Preview UI ---
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        let imgEl = document.getElementById('displayFotoProfil');
+                        const inisialEl = document.getElementById('displayInisial');
+                        
+                        // Kalau belum ada img tag (masih inisial)
+                        if (!imgEl) {
+                            imgEl = document.createElement('img');
+                            imgEl.id = 'displayFotoProfil';
+                            imgEl.style.width = '100%';
+                            imgEl.style.height = '100%';
+                            imgEl.style.objectFit = 'cover';
+                            imgEl.style.zIndex = '1';
+                            
+                            if (inisialEl) inisialEl.remove();
+                            
+                            // Insert gambar sblm label 'UBAH'
+                            input.parentElement.insertBefore(imgEl, input.previousElementSibling);
+                        }
+                        imgEl.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+
+                    // --- B. Kirim Server ---
+                    const formData = new FormData();
+                    formData.append('foto', file); 
+
+                    Swal.fire({title: 'Menyimpan Foto...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                    
+                    try {
+                        const res = await fetch('/api/upload_avatar', { method: 'POST', body: formData });
+                        
+                        if (!res.ok) throw new Error('Server menolak request (Cek rute Flask).');
+                        
+                        const data = await res.json();
+                        if(data.status === 'success') {
+                            Swal.fire({icon: 'success', title: 'Berhasil!', text: data.message, confirmButtonColor: '#10B981'});
+                        } else {
+                            Swal.fire({icon: 'error', title: 'Gagal', text: data.message});
+                        }
+                    } catch(err) {
+                        Swal.fire('Gagal Menyimpan', err.message, 'error');
+                    }
+                }
+            }
+        });
+
+        // ==========================================================
+        // 2. TAB NAVIGATION
+        // ==========================================================
+        const tabBtns = document.querySelectorAll('.sidebar-btn[data-target]');
+        const tabContents = document.querySelectorAll('.content-section');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                btn.classList.add('active');
+                const targetId = btn.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // ==========================================================
+        // 3. EDIT NAMA & EMAIL
+        // ==========================================================
+        const btnReveal = document.getElementById('btnRevealEmail');
+        const displayHidden = document.getElementById('displayEmailHidden');
+        const displayFull = document.getElementById('displayEmailFull');
+        
+        if(btnReveal) {
+            btnReveal.addEventListener('click', () => {
+                if (displayFull.style.display === 'none') {
+                    displayFull.style.display = 'inline'; displayHidden.style.display = 'none'; btnReveal.textContent = 'Hide';
+                } else {
+                    displayFull.style.display = 'none'; displayHidden.style.display = 'inline'; btnReveal.textContent = 'Reveal';
+                }
+            });
+        }
+
+        ['Nama', 'Email'].forEach(type => {
+            const btnEdit = document.getElementById(`btnEdit${type}`);
+            const formUpdate = document.getElementById(`form${type === 'Nama' ? 'UpdateNama' : 'GantiEmail'}`);
+            const btnBatal = document.getElementById(`btnBatalEdit${type}`);
+            if(btnEdit) btnEdit.addEventListener('click', () => formUpdate.style.display = 'block');
+            if(btnBatal) btnBatal.addEventListener('click', () => formUpdate.style.display = 'none');
+        });
+
+        // ==========================================================
+        // 4. KEKUATAN PASSWORD
+        // ==========================================================
+        const inputNewPass = document.getElementById('newPass');
+        const inputConfirmPass = document.getElementById('confirmPass');
+        const btnSubmitPass = document.getElementById('btnSimpanPassword');
+        
+        if (inputNewPass) {
+            inputNewPass.addEventListener('input', () => {
+                const val = inputNewPass.value;
+                let score = 0;
+                if (val.length >= 8) score++;
+                if (val.match(/[A-Z]/) && val.match(/[0-9]/)) score++;
+                if (val.match(/[^a-zA-Z\d]/)) score++;
+
+                const bars = [document.getElementById('strBar1'), document.getElementById('strBar2'), document.getElementById('strBar3')];
+                const strText = document.getElementById('strText');
+                
+                bars.forEach(b => b.style.background = '#E2E8F0');
+
+                if (val.length === 0) { strText.textContent = "Masukkan password baru"; strText.style.color = "var(--text-muted)"; }
+                else if (score <= 1) { bars[0].style.background = '#E11D48'; strText.textContent = "Lemah"; strText.style.color = '#E11D48'; }
+                else if (score === 2) { bars[0].style.background = '#F59E0B'; bars[1].style.background = '#F59E0B'; strText.textContent = "Sedang"; strText.style.color = '#F59E0B'; }
+                else { bars.forEach(b => b.style.background = '#10B981'); strText.textContent = "Kuat! 💪"; strText.style.color = '#10B981'; }
+                
+                checkMatch();
+            });
+        }
+
+        function checkMatch() {
+            if(!inputConfirmPass) return;
+            const matchText = document.getElementById('matchText');
+            if (inputConfirmPass.value.length === 0) { matchText.textContent = ""; btnSubmitPass.disabled = true; btnSubmitPass.style.opacity='0.5'; return; }
+            
+            if (inputNewPass.value === inputConfirmPass.value) {
+                matchText.textContent = "✔️ Cocok"; matchText.style.color = '#10B981'; btnSubmitPass.disabled = false; btnSubmitPass.style.opacity='1';
+            } else {
+                matchText.textContent = "❌ Tidak cocok"; matchText.style.color = '#E11D48'; btnSubmitPass.disabled = true; btnSubmitPass.style.opacity='0.5';
+            }
+        }
+        if (inputConfirmPass) inputConfirmPass.addEventListener('input', checkMatch);
+
+        // ==========================================================
+        // 5. DANGER ZONE
+        // ==========================================================
+        const btnWipe = document.getElementById('btnWipeHistory');
+        if (btnWipe) {
+            btnWipe.addEventListener('click', () => {
+                Swal.fire({
+                    title: 'Wipe Data Laporan?', text: "Seluruh riwayat penerbangan akan dihapus.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#F59E0B'
+                }).then((r) => { if (r.isConfirmed) Swal.fire('Terhapus!', 'Data dikosongkan.', 'success'); });
+            });
+        }
+
+        const btnsHapusAkun = document.querySelectorAll('#btnHapusAkun, #btnHapusAkunSidebar');
+        btnsHapusAkun.forEach(btn => {
+            btn.addEventListener('click', () => {
+                Swal.fire({
+                    title: 'Hapus Akun Permanen?', text: "Semua data akan musnah!", icon: 'error', showCancelButton: true, confirmButtonColor: '#E11D48'
+                }).then((r) => { if (r.isConfirmed) Swal.fire('Proses', 'Akun dihapus...', 'info'); });
+            });
+        });
+    });
+</script>
+
 <script type="module">
-    import { initProfile } from "{{ url_for('static', filename='js/auth.js') }}";
+    import { initProfile } from "{{ url_for('static', filename='js/auth.js') }}?v=9.9";
     document.addEventListener('DOMContentLoaded', () => {
         initProfile();
     });

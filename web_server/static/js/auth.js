@@ -289,41 +289,68 @@ export function initProfile() {
         });
     }
 
-    // 5. GANTI FOTO PROFIL (Real Upload)
+// 5. GANTI FOTO PROFIL (Real Upload)
     const inputFotoProfil = document.getElementById('inputFotoProfil');
-    if (btnGantiFoto && inputFotoProfil) {
-        btnGantiFoto.addEventListener('click', () => inputFotoProfil.click());
-        
+    
+    if (inputFotoProfil) {
         inputFotoProfil.addEventListener('change', async (e) => {
-            if(e.target.files.length > 0) {
+            // Pastikan beneran ada file yang dipilih
+            if(e.target.files && e.target.files.length > 0) {
                 const file = e.target.files[0];
+                
+                // --- 1. Ganti Preview di Layar ---
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    let imgEl = inputFotoProfil.parentElement.querySelector('img');
+                    if (!imgEl) {
+                        imgEl = document.createElement('img');
+                        imgEl.style.width = '100%';
+                        imgEl.style.height = '100%';
+                        imgEl.style.objectFit = 'cover';
+                        
+                        const spanEl = inputFotoProfil.parentElement.querySelector('span');
+                        if (spanEl) spanEl.remove();
+                        
+                        inputFotoProfil.parentElement.insertBefore(imgEl, inputFotoProfil.parentElement.firstChild);
+                    }
+                    imgEl.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+
+                // --- 2. Kirim ke Server Backend ---
+                // FIX UTAMA: Pakai FormData standar tanpa diotak-atik
                 const formData = new FormData();
-                formData.append('foto', file);
+                formData.append('foto', file); 
 
                 Swal.fire({title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
                 
                 try {
+                    // PENTING: Jangan tambahin 'headers' apapun di sini
                     const res = await fetch('/api/upload_avatar', {
                         method: 'POST',
                         body: formData
                     });
+                    
+                    // Cek error HTTP (misal 400, 500) sebelum diparse ke JSON
+                    if (!res.ok) {
+                        const errData = await res.json();
+                        throw new Error(errData.message || 'Server menolak request');
+                    }
+                    
                     const data = await res.json();
                     
                     if(data.status === 'success') {
-                        Swal.fire({icon: 'success', title: 'Berhasil!', text: data.message, confirmButtonColor: '#10B981'})
-                        .then(() => {
-                            window.location.reload(); // Reload halaman setelah upload berhasil
-                        });
+                        Swal.fire({icon: 'success', title: 'Berhasil!', text: data.message, confirmButtonColor: '#10B981'});
                     } else {
                         Swal.fire({icon: 'error', title: 'Gagal', text: data.message});
                     }
                 } catch(err) {
-                    Swal.fire('Error', 'Gagal upload file ke server.', 'error');
+                    console.error("Upload error dari Fetch:", err.message);
+                    Swal.fire('Gagal', err.message, 'error');
                 }
             }
         });
     }
-
     // 6. LOGIC UPDATE PASSWORD
     const formPassword = document.getElementById('formPassword');
     if (formPassword) {

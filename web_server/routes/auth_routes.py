@@ -154,33 +154,48 @@ def update_profile():
 @login_required
 def upload_avatar():
     if 'foto' not in request.files:
-        return jsonify({'status': 'error', 'message': 'Tidak ada file yang diunggah.'}), 400
+        return jsonify({'status': 'error', 'message': 'Tidak ada file yang terdeteksi.'}), 400
     
     file = request.files['foto']
+    
     if file.filename == '':
-        return jsonify({'status': 'error', 'message': 'File belum dipilih.'}), 400
-        
+        return jsonify({'status': 'error', 'message': 'File kosong.'}), 400
+
     if file and allowed_file(file.filename):
-        filename = secure_filename(f"avatar_{current_user.id}_{file.filename}")
+        # 1. Bikin ekstensi jadi lowercase dan bikin nama file yang unik & aman
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        import uuid # Pastikan udah import uuid di atas file
+        filename = secure_filename(f"avatar_{current_user.id}_{uuid.uuid4().hex[:8]}.{ext}")
         
-        # Bikin folder otomatis kalau belum ada
-        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads')
-        if not os.path.exists(upload_dir):
-            os.makedirs(upload_dir)
+        # 2. Pastikan Folder Upload beneran ada!
+        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
             
-        upload_path = os.path.join(upload_dir, filename)
-        file.save(upload_path)
+        filepath = os.path.join(upload_folder, filename)
         
-        # ======================================================
-        # INI DIA KUNCI JAWABANNYA! KITA SIMPAN KE DATABASE
-        # ======================================================
-        current_user.avatar = filename
-        db.session.commit()
-        # ======================================================
-        
-        return jsonify({'status': 'success', 'message': 'Foto profil berhasil diperbarui.', 'filename': filename})
+        try:
+            # 3. Simpan file fisik ke folder
+            file.save(filepath)
+            
+            # 4. Hapus foto lama biar server nggak penuh (Opsional tapi bagus)
+            if current_user.avatar:
+                old_filepath = os.path.join(upload_folder, current_user.avatar)
+                if os.path.exists(old_filepath):
+                    os.remove(old_filepath)
+            
+            # 5. Simpan nama file baru ke Database
+            current_user.avatar = filename
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'message': 'Foto profil diperbarui!'})
+            
+        except Exception as e:
+            print(f"Error saving upload: {str(e)}") # Ini bakal muncul di terminal Python lu
+            return jsonify({'status': 'error', 'message': 'Gagal menyimpan file ke server.'}), 500
+            
     else:
-        return jsonify({'status': 'error', 'message': 'Tipe file tidak didukung! Gunakan .jpg atau .png.'}), 400
+        return jsonify({'status': 'error', 'message': 'Format tidak didukung. Gunakan .png atau .jpg!'}), 400
 
 # --- REQUEST GANTI EMAIL ---
 @auth_bp.route('/api/request_email_change', methods=['POST'])
