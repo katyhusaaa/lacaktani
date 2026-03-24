@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zonal Heatmap LacakTani (Pro Version)</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 20px; background: #F8FAFC; }
+        .container { max-width: 1000px; margin: auto; }
+        #map { height: 500px; width: 100%; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1; }
+        
+        /* Legend Box Styling */
+        .legend {
+            background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 8px; backdrop-filter: blur(4px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); line-height: 1.8; color: #1E293B; font-size: 12px; font-weight: 700; border: 1px solid #E2E8F0;
+        }
+        .legend i { width: 16px; height: 16px; float: left; margin-right: 10px; border-radius: 4px; opacity: 0.7; }
+        
+        /* Efek Hover di Poligon */
+        .jalur-polygon { transition: fill-opacity 0.2s; }
+        .jalur-polygon:hover { fill-opacity: 0.6 !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="color: #0F172A; margin-top: 0; font-weight: 900;">Metode Presisi: Zonal / Row-Based Heatmap</h2>
+    <p style="color: #64748B; font-size: 14px; margin-bottom: 20px;">
+        Visualisasi telah diubah menggunakan <i>transparent overlay</i> dan <i>dashed borders</i> agar tekstur daun stroberi dan gundukan tanah dari satelit tetap terlihat jelas oleh petani.
+    </p>
+
+    <div id="map"></div>
+</div>
+
+<script>
+    // 1. Setup Peta
+    var centerLat = -6.3704;
+    var centerLng = 106.8244;
+    var map = L.map('map').setView([centerLat, centerLng], 20);
+
+    // Satelit Google Maps
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 21,
+        attribution: '© Google'
+    }).addTo(map);
+
+    // 2. Buat Poligon Bedengan (Jalur Tanaman) - Format Turf.js [Lng, Lat]
+    var jalur1 = turf.polygon([[
+        [106.82425, -6.37035], [106.82435, -6.37035], [106.82430, -6.37055], [106.82420, -6.37055], [106.82425, -6.37035]
+    ]], { name: "Jalur Barat" });
+
+    var jalur2 = turf.polygon([[
+        [106.82440, -6.37035], [106.82450, -6.37035], [106.82445, -6.37055], [106.82435, -6.37055], [106.82440, -6.37035]
+    ]], { name: "Jalur Tengah" });
+
+    var jalur3 = turf.polygon([[
+        [106.82455, -6.37035], [106.82465, -6.37035], [106.82460, -6.37055], [106.82450, -6.37055], [106.82455, -6.37035]
+    ]], { name: "Jalur Timur" });
+
+    var allJalur = [jalur1, jalur2, jalur3];
+
+    // 3. Titik Deteksi Stroberi (Titik Putih Dummy) - Format Turf.js [Lng, Lat]
+    var points = turf.featureCollection([
+        turf.point([106.82428, -6.37040]), // Jalur Barat
+        turf.point([106.82426, -6.37045]), // Jalur Barat
+        turf.point([106.82445, -6.37042]), // Jalur Tengah (rame)
+        turf.point([106.82446, -6.37043]), // Jalur Tengah
+        turf.point([106.82444, -6.37048]), // Jalur Tengah
+        turf.point([106.82442, -6.37050]), // Jalur Tengah
+        turf.point([106.82460, -6.37040])  // Jalur Timur (sepi)
+    ]);
+
+    // Tampilkan titik putih di peta biar kelihatan posisi aslinya
+    L.geoJSON(points, {
+        pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, { radius: 3, color: '#fff', fillColor: '#fff', fillOpacity: 0.8, weight: 1 });
+        }
+    }).addTo(map);
+
+    // 4. Fungsi Menentukan Warna (Palet Modern UI)
+    function getColor(jumlah) {
+        return jumlah > 3  ? '#EF4444' : // Merah (Siap Panen Banyak)
+               jumlah > 1  ? '#F59E0B' : // Kuning/Oranye (Lumayan)
+               jumlah > 0  ? '#10B981' : // Hijau (Sedikit/Baru mulai)
+                             'rgba(255,255,255,0.05)'; // Bening (Kosong)
+    }
+
+    // 5. Hitung & Gambar Poligon ke Peta (Teknik Styling "Tech Scanner")
+    allJalur.forEach(function(jalur) {
+        var ptsWithin = turf.pointsWithinPolygon(points, jalur);
+        var jumlahStroberi = ptsWithin.features.length;
+        var warnaArea = getColor(jumlahStroberi);
+
+        L.geoJSON(jalur, {
+            style: {
+                fillColor: warnaArea,
+                weight: 2,                   // Ketebalan garis outline
+                color: warnaArea,            // Warna garis sama kayak warna dalemnya
+                dashArray: '6, 6',           // Bikin pinggirannya putus-putus
+                fillOpacity: 0.35,           // TRANSPARANSI (Kunci biar gak nutupin kebun)
+                className: 'jalur-polygon'   // Panggil class CSS efek hover
+            }
+        }).bindPopup(
+            "<div style='text-align:center; padding: 4px;'>" +
+            "<div style='font-size: 11px; color: #64748B; font-weight: 800; text-transform: uppercase;'>" + jalur.properties.name + "</div>" +
+            "<div style='font-size: 24px; color: " + warnaArea + "; font-weight: 900; margin: 4px 0;'>" + jumlahStroberi + "</div>" +
+            "<div style='font-size: 12px; color: #334155; font-weight: 700;'>Buah Terdeteksi</div>" +
+            "</div>"
+        ).addTo(map);
+    });
+
+    // 6. Bikin Legend (Keterangan Warna) yang Estetik
+    var legend = L.control({position: 'bottomright'});
+    legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'legend');
+        div.innerHTML += '<div style="margin-bottom: 8px; font-weight: 900; color: #0F172A; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Distribusi Kematangan</div>';
+        div.innerHTML += '<div style="display: flex; align-items: center; margin-bottom: 4px;"><i style="background: #EF4444"></i> Siap Panen (>3 Buah)</div>';
+        div.innerHTML += '<div style="display: flex; align-items: center; margin-bottom: 4px;"><i style="background: #F59E0B"></i> Menengah (2-3 Buah)</div>';
+        div.innerHTML += '<div style="display: flex; align-items: center;"><i style="background: #10B981"></i> Rendah (1 Buah)</div>';
+        return div;
+    };
+    legend.addTo(map);
+
+</script>
+
+</body>
+</html>

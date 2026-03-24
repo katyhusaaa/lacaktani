@@ -120,6 +120,16 @@ def login():
             return jsonify({'status': 'error', 'message': 'Akun belum aktif! Silakan cek email Anda untuk verifikasi.'})
             
         login_user(user)
+        
+        # --- TAMBAHAN BARU: Tarik data rotasi dari DB ke Memori Global pas login ---
+        try:
+            cam_state.cam_rotate = str(getattr(user, 'cam_rotate', '0'))
+            cam_state.cam_hflip = str(getattr(user, 'cam_hflip', '0'))
+            cam_state.AI_CONFIDENCE = float(getattr(user, 'ai_conf', 0.5))
+        except:
+            pass
+        # ---------------------------------------------------------------------
+        
         return jsonify({'status': 'success'})
         
     return jsonify({'status': 'error', 'message': 'Username atau password salah!'})

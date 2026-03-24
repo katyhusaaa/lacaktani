@@ -119,7 +119,21 @@ def cam_control():
         db.session.commit()
         return jsonify({'status': 'success'})
 
-    # 2. KHUSUS HARDWARE ESP32 (Pakai Integer / Bilangan Bulat)
+    # ==========================================
+    # 2. KHUSUS ROTASI & FLIP (Simpan ke cam_state biar dibaca vision.py)
+    # ==========================================
+    if var_name in ['rotate', 'hflip']:
+        val_str = str(raw_val)
+        if var_name == 'rotate': 
+            current_user.cam_rotate = val_str # Simpan ke DB biar permanen
+            cam_state.cam_rotate = val_str    # Simpan ke RAM biar langsung diputar
+        elif var_name == 'hflip': 
+            current_user.cam_hflip = val_str
+            cam_state.cam_hflip = val_str
+        db.session.commit()
+        return jsonify({'status': 'success'})
+
+    # 3. KHUSUS HARDWARE ESP32 (Pakai Integer / Bilangan Bulat)
     val = int(float(raw_val))
     if var_name == 'brightness': current_user.cam_bright = val
     elif var_name == 'contrast': current_user.cam_contrast = val

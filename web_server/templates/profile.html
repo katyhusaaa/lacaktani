@@ -226,34 +226,61 @@
             </div>
         </div>
 
-        <div id="gcsConfig" class="content-section">
+<div id="gcsConfig" class="content-section">
             <h2 class="section-title">GCS System Configuration</h2>
             <div class="setting-list-card">
+                
                 <div class="setting-item">
                     <div class="setting-item-info">
                         <h4>Hardware Binding IP</h4>
-                        <p>Alamat IP default untuk ESP32-CAM.</p>
+                        <p>Alamat IP default untuk koneksi video stream ESP32-CAM.</p>
                     </div>
                     <div style="display: flex;">
                         <div style="background: #E2E8F0; padding: 10px; border-radius: 8px 0 0 8px; font-size: 12px; font-weight: 800; color: #64748B; border: 1px solid #CBD5E1; border-right: none;">http://</div>
                         <input type="text" id="prefIpKamera" class="saas-input" placeholder="192.168.x.x" style="border-radius: 0 8px 8px 0; margin: 0; width: 150px;">
                     </div>
                 </div>
+                
                 <div class="setting-item">
                     <div class="setting-item-info">
                         <h4>Resolusi Auto-Load</h4>
-                        <p>Kualitas stream video saat terhubung ke drone.</p>
+                        <p>Kualitas stream video saat terhubung ke kamera drone.</p>
                     </div>
-                    <select id="prefResolution" class="saas-input" style="margin: 0; width: 200px;">
-                        <option value="5">CIF (400x296)</option>
-                        <option value="6" selected>VGA (640x480)</option>
-                        <option value="8">XGA (1024x768)</option>
+                    <select id="prefResolution" class="saas-input" style="margin: 0; width: 220px;">
+                        <option value="5">CIF (400x296) - Cepat</option>
+                        <option value="6" selected>VGA (640x480) - Normal</option>
+                        <option value="8">XGA (1024x768) - Berat</option>
                     </select>
                 </div>
-            </div>
-            <button id="btnSimpanPreferensi" class="btn-saas-primary">Simpan Konfigurasi Sistem</button>
-        </div>
 
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <h4>AI Confidence Threshold</h4>
+                        <p>Batas keyakinan minimal model YOLOv5 untuk mendeteksi stroberi.</p>
+                    </div>
+                    <select id="prefAiConfidence" class="saas-input" style="margin: 0; width: 220px;">
+                        <option value="0.30">Rendah (30%) - Sangat Sensitif</option>
+                        <option value="0.50" selected>Normal (50%) - Seimbang</option>
+                        <option value="0.75">Tinggi (75%) - Sangat Akurat</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <h4>Peta Telemetri Default</h4>
+                        <p>Jenis peta dasar yang dimuat pertama kali pada layar Dashboard.</p>
+                    </div>
+                    <select id="prefMapType" class="saas-input" style="margin: 0; width: 220px;">
+                        <option value="street">Street Map (Peta Jalan)</option>
+                        <option value="satellite" selected>Citra Satelit (Outdoor)</option>
+                        <option value="hybrid">Hybrid (Satelit + Label)</option>
+                    </select>
+                </div>
+
+            </div>
+            
+            <button id="btnSimpanPreferensi" class="btn-saas-primary" style="margin-top: 8px;">Simpan Konfigurasi Sistem</button>
+        </div>
 
         <div id="security" class="content-section">
             <h2 class="section-title">Password & Authentication</h2>

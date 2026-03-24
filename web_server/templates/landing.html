@@ -1,6 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+/* =========================================
+   GAYA 1: AI DATA PIPELINE PULSE
+========================================= */
+@keyframes dataPulse {
+    0%, 100% { 
+        border-color: #E2E8F0; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+        transform: translateY(0) scale(1); 
+    }
+    30% { 
+        border-color: #0EA5E9; /* Warna biru techy */
+        box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3); 
+        transform: translateY(-5px) scale(1.05); 
+    }
+}
+
+.tech-pill {
+    animation: dataPulse 4s infinite ease-in-out;
+    background: white; /* Pastiin background putih biar glownya dapet */
+}
+
+/* Kuncinya di sini: Delay berurutan biar nyalanya kayak ombak (Wave) */
+.tech-pill:nth-child(1) { animation-delay: 0.0s; }
+.tech-pill:nth-child(2) { animation-delay: 0.3s; }
+.tech-pill:nth-child(3) { animation-delay: 0.6s; }
+.tech-pill:nth-child(4) { animation-delay: 0.9s; }
+.tech-pill:nth-child(5) { animation-delay: 1.2s; }
+.tech-pill:nth-child(6) { animation-delay: 1.5s; }
+
+.tech-pill:hover {
+    animation-play-state: paused;
+    border-color: #E11D48; /* Kalau disentuh mouse jadi merah LacakTani */
+    box-shadow: 0 10px 25px rgba(225, 29, 72, 0.3);
+}
+</style>
 <div id="phaseSetup" class="landing-wrap">
         
     <header class="navbar">
@@ -123,19 +159,38 @@
         </div>
     </section>
 
-    <section class="os-section">
-        <div class="container">
-            <div class="os-box">
-                <div class="os-badge">Proprietary System</div>
+<section class="os-section" style="padding: 80px 0; display: flex; justify-content: center;">
+        <div class="container" style="max-width: 800px; width: 100%;">
+            <div class="os-box" style="
+                background: white; 
+                padding: 50px 40px; 
+                border-radius: 24px; 
+                text-align: center;
+                border: 2px dashed #CBD5E1; /* Garis putus-putus */
+                box-shadow: 0 20px 40px rgba(0,0,0,0.02);
+                transition: transform 0.3s ease;
+            " onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                
+                <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                    <div style="background: #FFF1F2; color: #E11D48; padding: 6px 16px; border-radius: 100px; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;">
+                        Proprietary System
+                    </div>
+                </div>
+
                 <h2 style="font-size: 32px; font-weight: 900; letter-spacing: -0.02em; color: var(--text-dark); margin-bottom: 16px;">
                     Arsitektur Sistem Tertutup.
                 </h2>
-                <p style="font-size: 16px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.6;">
+                
+                <p style="font-size: 16px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto;">
                     LacakTani.ai dikembangkan dengan standar keamanan dan efisiensi tinggi sebagai bagian dari purwarupa riset Tugas Akhir. Pelajari topologi dan cara kerja sistem di buku manual kami.
                 </p>
-                <a href="/docs" class="btn-primary" style="padding: 14px 28px;">
+                
+                <a href="/docs" class="btn-primary" style="padding: 14px 32px; font-size: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none;">
                     Baca Arsitektur Sistem
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
                 </a>
             </div>
         </div>
@@ -330,29 +385,44 @@
                 <button class="tab-btn" id="tabRegister">Buat Akun</button>
             </div>
             
-            <form id="loginForm">
-                <input type="text" id="logUser" placeholder="Username" class="saas-input" required>
-                <input type="password" id="logPass" placeholder="Password" class="saas-input" required>
+<form id="loginForm">
+                <input type="text" id="logUser" placeholder="Username" class="saas-input" required style="width: 100%; box-sizing: border-box; margin-bottom: 16px;">
                 
-                <div style="text-align: right; margin-bottom: 16px;">
-                    <a href="#" id="btnTampilkanLupaAkun" style="font-size: 12px; font-weight: 700; color: #0EA5E9; text-decoration: none;">Lupa Username / Password?</a>
+                <div style="position: relative; margin-bottom: 20px;">
+                    <input type="password" id="logPass" placeholder="Password" class="saas-input" required style="width: 100%; box-sizing: border-box; padding-right: 45px; margin-bottom: 0;">
+                    <span class="toggle-password" onclick="togglePass('logPass', this)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94A3B8; display: flex; transition: 0.2s;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <label style="font-size: 12px; font-weight: 700; color: #64748B; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="logRemember" style="accent-color: var(--primary); width: 14px; height: 14px; cursor: pointer; margin: 0;">
+                        Ingat Saya
+                    </label>
+                    <a href="#" id="btnTampilkanLupaAkun" style="font-size: 12px; font-weight: 700; color: #0EA5E9; text-decoration: none; transition: 0.2s;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Lupa Password?</a>
                 </div>
 
                 <button type="submit" class="btn-primary w-100" id="btnLoginBtn">Masuk ke Workspace</button>
             </form>
 
-<form id="registerForm" style="display: none; text-align: left;">
+            <form id="registerForm" style="display: none; text-align: left;">
                 <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Nama Lengkap</label>
-                <input type="text" id="regNama" class="saas-input" placeholder="Cth: Amba Rita" required autocomplete="off">
+                <input type="text" id="regNama" class="saas-input" placeholder="Cth: Amba Rita" required autocomplete="off" style="width: 100%; box-sizing: border-box;">
                 
                 <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Email Aktif</label>
-                <input type="email" id="regEmail" class="saas-input" placeholder="email@kamu.com" required autocomplete="off">
+                <input type="email" id="regEmail" class="saas-input" placeholder="email@kamu.com" required autocomplete="off" style="width: 100%; box-sizing: border-box;">
                 
                 <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Buat Username</label>
-                <input type="text" id="regUser" class="saas-input" placeholder="Pilih username tanpa spasi" required autocomplete="off">
+                <input type="text" id="regUser" class="saas-input" placeholder="Pilih username tanpa spasi" required autocomplete="off" style="width: 100%; box-sizing: border-box;">
                 
                 <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Kata Sandi</label>
-                <input type="password" id="regPass" class="saas-input" placeholder="Minimal 8 karakter" required style="margin-bottom: 8px;">
+                <div style="position: relative; margin-bottom: 8px;">
+                    <input type="password" id="regPass" class="saas-input" placeholder="Minimal 8 karakter" required style="width: 100%; box-sizing: border-box; padding-right: 45px; margin-bottom: 0;">
+                    <span class="toggle-password" onclick="togglePass('regPass', this)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94A3B8; display: flex; transition: 0.2s;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </span>
+                </div>
                 
                 <div style="display: flex; gap: 4px; margin-bottom: 6px;" id="regStrengthBars">
                     <div class="s-bar-reg" style="height: 4px; flex: 1; border-radius: 2px; background: #E2E8F0; transition: 0.3s;"></div>
@@ -362,7 +432,12 @@
                 <p id="regStrengthText" style="font-size: 11px; color: var(--text-muted); margin: 0 0 12px 0; font-weight: 600;">Kekuatan Sandi: Belum diketik</p>
 
                 <label style="font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; display: block;">Konfirmasi Kata Sandi</label>
-                <input type="password" id="regConfirmPass" class="saas-input" placeholder="Ketik ulang kata sandi" required style="margin-bottom: 8px;">
+                <div style="position: relative; margin-bottom: 8px;">
+                    <input type="password" id="regConfirmPass" class="saas-input" placeholder="Ketik ulang kata sandi" required style="width: 100%; box-sizing: border-box; padding-right: 45px; margin-bottom: 0;">
+                    <span class="toggle-password" onclick="togglePass('regConfirmPass', this)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94A3B8; display: flex; transition: 0.2s;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </span>
+                </div>
                 <p id="regMatchText" style="font-size: 11px; color: #E11D48; margin: 0 0 12px 0; font-weight: 600; display: none;">Kata sandi tidak cocok!</p>
                 
                 <button type="submit" class="btn-primary w-100" id="btnRegBtn" style="margin-top: 12px; opacity: 0.5; cursor: not-allowed;" disabled>Daftar Sekarang</button>
@@ -519,5 +594,28 @@
 
             regConfirmPass.addEventListener('input', checkRegMatch);
         }
+        // ==========================================
+        // LOGIC MATA PASSWORD (SHOW/HIDE)
+        // ==========================================
+        window.togglePass = function(inputId, el) {
+            const input = document.getElementById(inputId);
+            const iconContainer = el;
+            
+            // Icon Mata Terbuka
+            const eyeIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            
+            // Icon Mata Tertutup (Eye Off)
+            const eyeOffIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+            if (input.type === "password") {
+                input.type = "text";
+                iconContainer.innerHTML = eyeOffIcon;
+                iconContainer.style.color = "var(--primary)"; // Berubah warna saat aktif
+            } else {
+                input.type = "password";
+                iconContainer.innerHTML = eyeIcon;
+                iconContainer.style.color = "#94A3B8"; // Kembali warna abu-abu
+            }
+        };
 </script>
 {% endblock %}
